@@ -1,10 +1,43 @@
 {
-	"name": "my-git-server",
+	"name": "git-server",
 	"version": "2.1.0",
+	"description": "基于 Node.js + Vue3 的现代化,轻量化 Git 仓库管理系统，提供完整的仓库管理、代码查看和权限控制功能",
 	"main": "index.js",
+	"bin": {
+		"git-server": "./bin/cli.js"
+	},
+	"keywords": [
+		"git",
+		"git-server",
+		"repository",
+		"version-control",
+		"git-management",
+		"code-viewer",
+		"git-http",
+		"repository-management"
+	],
+	"author": "tinyflake",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yourusername/git-server.git"
+	},
+	"bugs": {
+		"url": "https://github.com/yourusername/git-server/issues"
+	},
+	"homepage": "https://github.com/yourusername/git-server#readme",
+	"engines": {
+		"node": ">=16.0.0"
+	},
 	"scripts": {
-		"build-release": "node build-release.js"
+		"start": "node backend/app.js",
+		"build-release": "node build-release.js",
+		"postinstall": "node scripts/postinstall.js",
+		"prepublishOnly": "node scripts/pre-publish-check.js",
+		"test-pack": "npm pack --dry-run",
+		"version:patch": "node scripts/bump-version.js patch",
+		"version:minor": "node scripts/bump-version.js minor",
+		"version:major": "node scripts/bump-version.js major"
 	},
 	"dependencies": {
 		"body-parser": "^2.2.2",
@@ -16,5 +49,22 @@
 	},
 	"devDependencies": {
 		"javascript-obfuscator": "^4.1.0"
-	}
+	},
+	"files": [
+		"backend/",
+		"frontend/",
+		"bin/",
+		"scripts/",
+		"config.json",
+		"index.js",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE",
+		"!backend/node_modules",
+		"!backend/repos",
+		"!backend/logs",
+		"!backend/temp",
+		"!backend/backup",
+		"!frontend/node_modules"
+	]
 }

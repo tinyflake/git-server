@@ -49,13 +49,30 @@
 
 ## 🎯 快速开始
 
-### 1. 环境要求
+### 方式 1: NPM 安装（推荐）
+
+```bash
+# 全局安装
+npm install -g git-server
+
+# 启动服务器
+git-server
+
+# 或者无需安装直接运行
+npx git-server
+```
+
+访问 http://localhost:3000，使用默认账号 `admin / 123456` 登录。
+
+### 方式 2: 源码部署
+
+#### 1. 环境要求
 
 - Node.js v16+
 - npm 或 yarn
 - Git
 
-### 2. 安装依赖
+#### 2. 安装依赖
 
 ```bash
 # 后端
@@ -71,7 +88,7 @@ npm install
 yarn install
 ```
 
-### 3. 启动服务
+#### 3. 启动服务
 
 #### 开发环境
 
@@ -106,9 +123,44 @@ npm start
 
 ### 4. 访问系统
 
+- **NPM 安装方式**：http://localhost:3000
 - **开发环境**：http://localhost:5173
 - **生产环境**：http://localhost:3000
 - **默认账号**：admin / 123456
+
+## 📦 NPM 使用
+
+### 命令行使用
+
+```bash
+# 启动服务器
+git-server
+
+# 指定端口
+git-server --port 8080
+
+# 指定主机和仓库路径
+git-server --host 0.0.0.0 --repo /path/to/repos
+
+# 查看帮助
+git-server help
+```
+
+### 编程式使用
+
+```javascript
+const GitServer = require('git-server');
+
+const server = new GitServer({
+  port: 3000,
+  host: 'localhost',
+  repoPath: './repos'
+});
+
+await server.start();
+```
+
+更多使用示例请查看 [USAGE-EXAMPLES.md](./USAGE-EXAMPLES.md)
 
 ## 📖 使用指南
 

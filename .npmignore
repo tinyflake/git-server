@@ -1,0 +1,46 @@
+# 开发文件
+.git/
+.vscode/
+.DS_Store
+.env
+*.log
+
+# 构建和测试
+node_modules/
+dist/
+release/
+coverage/
+
+# 文档（保留 README.md 和 CHANGELOG.md）
+docs/
+*.md
+!README.md
+!CHANGELOG.md
+!LICENSE
+
+# 数据目录
+repos/
+backend/repos/
+backend/logs/
+backend/temp/
+backend/backup/
+
+# 构建脚本（不需要发布）
+build-release.js
+build-release.bat
+clean-release.bat
+test-release.bat
+start-backend.bat
+start-frontend.bat
+
+# 中文文档
+构建说明.md
+配置说明.md
+
+# 其他
+ARCHITECTURE.md
+DEPLOY-STEPS.md
+DEPLOYMENT.md
+COMPLETED.md
+QUICK-START-MIGRATION.md
+GIT-USAGE-GUIDE.md
