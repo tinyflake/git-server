@@ -43,11 +43,13 @@
 						v-for="repo in filteredRepoList"
 						:key="repo.repoName"
 						:repo="repo"
+						:current-user="currentUser"
 						@click="goToRepo(repo.repoName)"
 						@copy-install="copyInstallCommand"
 						@download-latest="downloadLatestVersion"
 						@edit-path="editRepoPath"
 						@show-guide="handleShowGuide"
+						@delete="handleDeleteRepo"
 					/>
 
 					<!-- 空状态 -->
@@ -102,9 +104,10 @@
 <script setup>
 import { ref, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
-import { ElMessage } from "element-plus"
+import { ElMessage, ElMessageBox } from "element-plus"
 import { Search, Box } from "@element-plus/icons-vue"
 import { authUtils } from "../api/auth.js"
+import { repoApi } from "../api/repo.js"
 import configManager from "../utils/config"
 import PackageCard from "../components/PackageCard.vue"
 import EditRepoPathDialog from "../components/EditRepoPathDialog.vue"
@@ -116,6 +119,9 @@ const router = useRouter()
 
 // 搜索
 const searchQuery = ref("")
+
+// 当前用户
+const currentUser = ref(null)
 
 // 配置
 const configForm = ref({
@@ -189,6 +195,63 @@ const handleUpdatePath = async (formData) => {
 	}
 }
 
+// 删除仓库
+const handleDeleteRepo = async (repo) => {
+	try {
+		// 先弹出确认对话框
+		await ElMessageBox.confirm(
+			`确定要删除仓库 "${repo.repoName}" 吗？此操作将删除仓库的所有数据，不可恢复。`,
+			"确认删除",
+			{
+				confirmButtonText: "继续",
+				cancelButtonText: "取消",
+				type: "warning",
+			}
+		)
+
+		// 弹出密码输入框
+		const { value: password } = await ElMessageBox.prompt(
+			"请输入您的密码以确认删除操作",
+			"验证密码",
+			{
+				confirmButtonText: "确定删除",
+				cancelButtonText: "取消",
+				inputType: "password",
+				inputPlaceholder: "请输入密码",
+				inputValidator: (value) => {
+					if (!value) {
+						return "密码不能为空"
+					}
+					return true
+				},
+			}
+		)
+
+		// 调用删除接口，传入密码
+		const response = await repoApi.deleteRepo(repo.repoName, password)
+		if (response.code === 200) {
+			ElMessage.success("仓库删除成功")
+			loadRepoList()
+		} else {
+			ElMessage.error(response.msg || "删除失败")
+		}
+	} catch (error) {
+		// 用户取消操作
+		if (error === "cancel" || error === "close") {
+			return
+		}
+		// API 错误
+		if (error.response?.data?.msg) {
+			ElMessage.error(error.response.data.msg)
+		} else if (error.message) {
+			ElMessage.error(error.message)
+		} else {
+			ElMessage.error("删除失败")
+		}
+		console.error(error)
+	}
+}
+
 // 加载配置
 const loadConfig = async () => {
 	await configManager.fetchServerConfig()
@@ -206,6 +269,10 @@ onMounted(async () => {
 		router.push("/login")
 		return
 	}
+
+	// 获取当前用户信息
+	const userInfo = authUtils.getCurrentUser()
+	currentUser.value = userInfo
 
 	loadRepoList()
 	await loadConfig()

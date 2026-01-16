@@ -4,11 +4,10 @@
       "repoName": "test",
       "repoPath": "C:\\Users\\pc\\Desktop\\my-git-server\\repos\\test",
       "desc": "test",
+      "creator": "admin",
       "codeViewPermission": {
         "enabled": true,
-        "allowedUsers": [
-          "test"
-        ]
+        "allowedUsers": []
       }
     }
   ]

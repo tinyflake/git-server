@@ -35,9 +35,16 @@
 				<el-table-column
 					prop="desc"
 					label="描述"
-					min-width="250"
+					min-width="200"
 					show-overflow-tooltip
 				/>
+				<el-table-column prop="creator" label="创建者" width="120">
+					<template #default="{ row }">
+						<el-tag type="warning" size="small">
+							{{ row.creator || "未知" }}
+						</el-tag>
+					</template>
+				</el-table-column>
 				<el-table-column prop="author" label="作者" width="150" />
 				<el-table-column prop="version" label="版本" width="120" />
 				<el-table-column
@@ -57,6 +64,7 @@
 				>
 					<template #default="{ row }">
 						<el-button
+							v-if="canDelete(row)"
 							size="small"
 							type="danger"
 							@click="handleDelete(row)"
@@ -75,10 +83,12 @@ import { ref, computed, onMounted } from "vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { ArrowLeft, Search } from "@element-plus/icons-vue"
 import { repoApi } from "../api/repo"
+import { authUtils } from "../api/auth"
 
 const repos = ref([])
 const loading = ref(false)
 const searchKeyword = ref("")
+const currentUser = ref(null)
 
 // 过滤后的仓库列表
 const filteredRepos = computed(() => {
@@ -93,6 +103,21 @@ const filteredRepos = computed(() => {
 		repo.repoName.toLowerCase().includes(keyword)
 	)
 })
+
+// 判断是否可以删除
+const canDelete = (repo) => {
+	if (!currentUser.value) return false
+
+	// 超管可以删除所有仓库
+	if (currentUser.value.role === "super_admin") return true
+
+	// 管理员只能删除自己创建的仓库
+	if (currentUser.value.role === "admin") {
+		return repo.creator === currentUser.value.username
+	}
+
+	return false
+}
 
 // 格式化时间
 const formatTime = (dateString) => {
@@ -182,6 +207,9 @@ const handleDelete = async (repo) => {
 }
 
 onMounted(() => {
+	// 获取当前用户信息
+	const userInfo = authUtils.getCurrentUser()
+	currentUser.value = userInfo
 	loadRepos()
 })
 </script>

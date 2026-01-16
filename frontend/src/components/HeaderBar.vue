@@ -56,7 +56,7 @@
 				</el-dropdown>
 
 				<el-button
-					v-if="isSuperAdmin"
+					v-if="isAdmin"
 					type="primary"
 					@click="$emit('create-repo')"
 					class="create-btn"

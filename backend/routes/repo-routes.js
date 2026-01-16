@@ -4,7 +4,11 @@ const gitUtils = require("../utils/git-utils")
 const fs = require("fs-extra")
 const path = require("path")
 const configManager = require("../utils/config-manager")
-const { authenticateJWT, requireSuperAdmin } = require("../utils/jwt-utils")
+const {
+	authenticateJWT,
+	requireSuperAdmin,
+	requireAdmin,
+} = require("../utils/jwt-utils")
 const { initRepoWhitelist } = require("../utils/repo-permission")
 const { logOperation } = require("../utils/operation-logger")
 const authUtils = require("../utils/auth-utils")
@@ -89,11 +93,11 @@ router.get("/list", (req, res) => {
 	res.json({ code: 200, data: config.repoList })
 })
 
-// 2. 创建新仓库（仅超管）
-router.post("/create", authenticateJWT, requireSuperAdmin, (req, res) => {
-	const { repoName, desc, repoPath } = req.body
+// 2. 创建新仓库（超管和管理员）
+router.post("/create", authenticateJWT, requireAdmin, (req, res) => {
+	const { repoName, desc } = req.body
 
-	console.log("创建仓库请求:", { repoName, desc, repoPath })
+	console.log("创建仓库请求:", { repoName, desc, creator: req.user.username })
 
 	// 验证必需参数
 	if (!repoName || !repoName.trim()) {
@@ -121,25 +125,16 @@ router.post("/create", authenticateJWT, requireSuperAdmin, (req, res) => {
 	const exists = config.repoList.some((repo) => repo.repoName === repoName)
 	if (exists) return res.json({ code: 400, msg: "仓库已存在" })
 
-	// 确定仓库路径
-	let finalRepoPath
-	if (repoPath && repoPath.trim()) {
-		// 用户指定了路径
-		finalRepoPath = path.isAbsolute(repoPath)
-			? repoPath
-			: path.resolve(repoPath)
-	} else {
-		// 使用默认路径：项目根目录/repos/仓库名
-		const defaultRepoDir = configManager.get("git.defaultRepoPath")
-		// 如果是相对路径，相对于项目根目录解析（backend 的上一级）
-		const reposDir = path.isAbsolute(defaultRepoDir)
-			? defaultRepoDir
-			: path.resolve(__dirname, "../..", defaultRepoDir)
-		finalRepoPath = path.join(reposDir, repoName)
+	// 使用默认路径：项目根目录/repos/仓库名（不再允许自定义路径）
+	const defaultRepoDir = configManager.get("git.defaultRepoPath")
+	// 如果是相对路径，相对于项目根目录解析（backend 的上一级）
+	const reposDir = path.isAbsolute(defaultRepoDir)
+		? defaultRepoDir
+		: path.resolve(__dirname, "../..", defaultRepoDir)
+	const finalRepoPath = path.join(reposDir, repoName)
 
-		// 确保repos目录存在
-		fs.ensureDirSync(reposDir)
-	}
+	// 确保repos目录存在
+	fs.ensureDirSync(reposDir)
 
 	console.log("最终仓库路径:", finalRepoPath)
 
@@ -157,6 +152,7 @@ router.post("/create", authenticateJWT, requireSuperAdmin, (req, res) => {
 		repoName,
 		repoPath: finalRepoPath,
 		desc,
+		creator: req.user.username, // 记录创建者
 		whitelist: [], // 初始化白名单为空（所有人可见）
 	})
 	fs.writeJsonSync(REPO_CONFIG_PATH, config, { spaces: 2 })
@@ -195,11 +191,11 @@ router.post("/create", authenticateJWT, requireSuperAdmin, (req, res) => {
 	})
 })
 
-// 2.5 删除仓库（仅超管）
+// 2.5 删除仓库（超管和管理员）
 router.delete(
 	"/delete/:repoName",
 	authenticateJWT,
-	requireSuperAdmin,
+	requireAdmin,
 	(req, res) => {
 		try {
 			const { repoName } = req.params
@@ -242,8 +238,18 @@ router.delete(
 			const repo = config.repoList[repoIndex]
 			const repoPath = repo.repoPath
 
+			// 权限检查：管理员只能删除自己创建的仓库，超管可以删除所有仓库
+			if (req.user.role === "admin") {
+				if (repo.creator !== req.user.username) {
+					return res.json({
+						code: 403,
+						msg: "您只能删除自己创建的仓库",
+					})
+				}
+			}
+
 			console.log(
-				`删除仓库: ${repoName}, 路径: ${repoPath}, 操作者: ${req.user.username}`
+				`删除仓库: ${repoName}, 路径: ${repoPath}, 操作者: ${req.user.username}, 创建者: ${repo.creator}`
 			)
 
 			// 删除仓库文件夹
@@ -263,7 +269,7 @@ router.delete(
 				req.user.username,
 				"delete_repo",
 				repoName,
-				`删除仓库，路径: ${repoPath}`
+				`删除仓库，路径: ${repoPath}, 创建者: ${repo.creator || "未知"}`
 			)
 
 			res.json({
@@ -1387,6 +1393,7 @@ router.get(
 			const repoPath = String(req.query.repoPath || "")
 			const filePath = String(req.query.filePath || "")
 			const branch = String(req.query.branch || "main")
+			const download = req.query.download === "true" // 是否为下载请求
 
 			if (!repoPath || !filePath) {
 				return res.status(400).json({
@@ -1438,8 +1445,10 @@ router.get(
 					let stdout = ""
 					let stderr = ""
 					let isBinary = false
+					const chunks = []
 
 					gitProcess.stdout.on("data", (data) => {
+						chunks.push(data)
 						// 检测是否为二进制文件
 						if (!isBinary && data.includes(0)) {
 							isBinary = true
@@ -1453,7 +1462,27 @@ router.get(
 
 					gitProcess.on("close", (code) => {
 						if (code === 0) {
-							// 获取文件扩展名
+							// 如果是下载请求，直接返回文件内容
+							if (download) {
+								const fileName = path.basename(filePath)
+								const buffer = Buffer.concat(chunks)
+
+								res.setHeader(
+									"Content-Disposition",
+									`attachment; filename="${encodeURIComponent(
+										fileName
+									)}"`
+								)
+								res.setHeader(
+									"Content-Type",
+									"application/octet-stream"
+								)
+								res.send(buffer)
+								resolve()
+								return
+							}
+
+							// 否则返回 JSON 格式（用于预览）
 							const ext = path.extname(filePath).toLowerCase()
 							const imageExts = [
 								".jpg",

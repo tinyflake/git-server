@@ -180,20 +180,43 @@ export const repoApi = {
 	},
 
 	// 下载单个文件
-	downloadFile(repoPath, filePath, branch = "main") {
-		const params = { repoPath, filePath, branch }
-		const url = `/api/repo/file-content-with-permission?${new URLSearchParams(
-			params
-		)}`
+	async downloadFile(repoPath, filePath, branch = "main") {
+		try {
+			// 使用 axios 获取文件内容（会自动携带 token）
+			// 注意：这里不使用 api 实例，因为响应拦截器会处理 response.data
+			const token = localStorage.getItem("token")
+			const response = await axios.get(
+				"/api/repo/file-content-with-permission",
+				{
+					params: { repoPath, filePath, branch, download: true },
+					responseType: "blob", // 重要：以 blob 形式接收响应
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			)
 
-		// 创建一个隐藏的链接来触发下载
-		const link = document.createElement("a")
-		link.href = url
-		const fileName = filePath.split("/").pop()
-		link.download = fileName
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
+			// 创建 Blob URL
+			const blob = new Blob([response.data])
+			const url = window.URL.createObjectURL(blob)
+
+			// 创建下载链接
+			const link = document.createElement("a")
+			link.href = url
+			const fileName = filePath.split("/").pop()
+			link.download = fileName
+			document.body.appendChild(link)
+			link.click()
+
+			// 清理
+			document.body.removeChild(link)
+			window.URL.revokeObjectURL(url)
+
+			return { success: true }
+		} catch (error) {
+			console.error("下载文件失败:", error)
+			return { success: false, error: error.message }
+		}
 	},
 
 	// 检查代码查看权限

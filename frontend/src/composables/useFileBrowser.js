@@ -213,14 +213,25 @@ export function useFileBrowser(repoInfo, currentBranch, hasCodeViewPermission) {
 	}
 
 	// 下载当前文件
-	const downloadCurrentFile = () => {
+	const downloadCurrentFile = async () => {
 		if (!selectedFile.value) return
-		repoApi.downloadFile(
-			repoInfo.value.repoPath,
-			selectedFile.value.path,
-			currentBranch.value
-		)
-		ElMessage.success("开始下载...")
+
+		try {
+			const result = await repoApi.downloadFile(
+				repoInfo.value.repoPath,
+				selectedFile.value.path,
+				currentBranch.value
+			)
+
+			if (result.success) {
+				ElMessage.success("文件下载成功")
+			} else {
+				ElMessage.error(result.error || "文件下载失败")
+			}
+		} catch (error) {
+			console.error("下载文件失败:", error)
+			ElMessage.error("文件下载失败")
+		}
 	}
 
 	// 监听文件搜索

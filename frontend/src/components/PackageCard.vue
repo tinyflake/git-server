@@ -19,6 +19,10 @@
 					<el-icon><Calendar /></el-icon>
 					{{ formatDate(repo.lastModified) }}
 				</span>
+				<span class="meta-item creator">
+					<el-icon><UserFilled /></el-icon>
+					创建者: {{ repo.creator || "未知" }}
+				</span>
 				<span class="meta-item license">{{
 					repo.license || "MIT"
 				}}</span>
@@ -46,6 +50,14 @@
 			>
 				<el-icon><Download /></el-icon>
 			</el-button>
+			<el-button
+				v-if="canDelete"
+				size="small"
+				type="danger"
+				@click.stop="$emit('delete', repo)"
+			>
+				<el-icon><Delete /></el-icon>
+			</el-button>
 			<el-button size="small">
 				<el-icon><MoreFilled /></el-icon>
 			</el-button>
@@ -54,21 +66,24 @@
 </template>
 
 <script setup>
+import { computed } from "vue"
 import {
 	User,
+	UserFilled,
 	Calendar,
 	Download,
 	MoreFilled,
-	Edit,
-	Document,
 	Delete,
-	CopyDocument,
 } from "@element-plus/icons-vue"
 
-defineProps({
+const props = defineProps({
 	repo: {
 		type: Object,
 		required: true,
+	},
+	currentUser: {
+		type: Object,
+		default: null,
 	},
 })
 
@@ -78,7 +93,23 @@ defineEmits([
 	"download-latest",
 	"edit-path",
 	"show-guide",
+	"delete",
 ])
+
+// 判断是否可以删除
+const canDelete = computed(() => {
+	if (!props.currentUser) return false
+
+	// 超管可以删除所有仓库
+	if (props.currentUser.role === "super_admin") return true
+
+	// 管理员只能删除自己创建的仓库
+	if (props.currentUser.role === "admin") {
+		return props.repo.creator === props.currentUser.username
+	}
+
+	return false
+})
 
 const formatDate = (dateString) => {
 	if (!dateString) return "未知"
@@ -164,6 +195,7 @@ const formatDate = (dateString) => {
 	align-items: center;
 	gap: 16px;
 	margin-bottom: 8px;
+	flex-wrap: wrap;
 }
 
 .meta-item {
@@ -176,6 +208,14 @@ const formatDate = (dateString) => {
 
 .meta-item .el-icon {
 	font-size: 14px;
+}
+
+.meta-item.creator {
+	background: #fef3c7;
+	color: #92400e;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-weight: 500;
 }
 
 .meta-item.license {
@@ -226,6 +266,16 @@ const formatDate = (dateString) => {
 .package-actions .el-button--primary:hover {
 	background: #059669;
 	border-color: #059669;
+}
+
+.package-actions .el-button--danger {
+	background: #ef4444;
+	border-color: #ef4444;
+}
+
+.package-actions .el-button--danger:hover {
+	background: #dc2626;
+	border-color: #dc2626;
 }
 
 @media (max-width: 768px) {

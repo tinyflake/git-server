@@ -15,13 +15,12 @@
 			<el-form-item label="描述" prop="desc">
 				<el-input v-model="form.desc" placeholder="请输入仓库描述" />
 			</el-form-item>
-			<el-form-item label="存储路径" prop="repoPath">
-				<el-input
-					v-model="form.repoPath"
-					placeholder="默认路径: backend/repos/[仓库名称]"
-				/>
-				<div class="form-tip">留空将使用默认路径 (backend/repos)</div>
-			</el-form-item>
+			<el-alert
+				title="仓库将自动创建在默认路径：backend/repos/[仓库名称]"
+				type="info"
+				:closable="false"
+				style="margin-top: 12px"
+			/>
 		</el-form>
 
 		<template #footer>
@@ -52,7 +51,6 @@ const formRef = ref()
 const form = ref({
 	repoName: "",
 	desc: "",
-	repoPath: "",
 })
 
 const rules = {
@@ -75,7 +73,7 @@ const handleSubmit = async () => {
 }
 
 const handleClose = () => {
-	form.value = { repoName: "", desc: "", repoPath: "" }
+	form.value = { repoName: "", desc: "" }
 	formRef.value?.clearValidate()
 	emit("update:modelValue", false)
 }
