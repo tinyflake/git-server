@@ -1,5 +1,5 @@
 {
-	"name": "git-server",
+	"name": "git-serverh",
 	"version": "2.1.0",
 	"description": "基于 Node.js + Vue3 的现代化,轻量化 Git 仓库管理系统，提供完整的仓库管理、代码查看和权限控制功能",
 	"main": "index.js",
