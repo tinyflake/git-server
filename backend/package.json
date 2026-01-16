@@ -1,0 +1,19 @@
+{
+	"name": "git-server-backend",
+	"version": "1.0.0",
+	"description": "Git Server Backend",
+	"main": "app.js",
+	"scripts": {
+		"start": "node app.js"
+	},
+	"dependencies": {
+		"axios": "^1.13.2",
+		"bcryptjs": "^2.4.3",
+		"body-parser": "^2.2.2",
+		"cors": "^2.8.5",
+		"dotenv": "^17.2.3",
+		"express": "^5.2.1",
+		"fs-extra": "^11.3.3",
+		"jsonwebtoken": "^9.0.0"
+	}
+}

@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "id": "admin",
+      "username": "admin",
+      "password": "$2a$10$URrrpowwQtqP6xZKYoHPkun2yPfodjWOqAJTArtjiYLbWXtSjt6Tu",
+      "email": "admin@example.com",
+      "role": "super_admin",
+      "createdAt": "2026-01-14T00:00:00.000Z",
+      "lastLogin": "2026-01-16T02:38:12.795Z"
+    },
+    {
+      "id": "4e9ddb72-9b02-46cf-a895-7174130e1937",
+      "username": "test",
+      "password": "$2a$10$HD6qFJNK3C1hVC6D.cEhnOLub2lsk0sm5Tn94Ui3W5FPYF1JHRrk.",
+      "email": "",
+      "role": "user",
+      "createdAt": "2026-01-15T07:28:29.199Z",
+      "lastLogin": "2026-01-15T08:11:35.694Z"
+    },
+    {
+      "id": "f4b366db-5d46-42f6-8ea9-d255068e958c",
+      "username": "test1",
+      "password": "$2a$10$vzh8nC8pyTmxR1gxh1gi8.Usg58fmR4Wknh1KDRVmCqMH8MCZAlES",
+      "email": "",
+      "role": "admin",
+      "createdAt": "2026-01-15T07:43:48.752Z",
+      "lastLogin": "2026-01-15T08:38:11.372Z"
+    }
+  ]
+}

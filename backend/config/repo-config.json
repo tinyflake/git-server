@@ -1,0 +1,15 @@
+{
+  "repoList": [
+    {
+      "repoName": "test",
+      "repoPath": "C:\\Users\\pc\\Desktop\\my-git-server\\repos\\test",
+      "desc": "test",
+      "codeViewPermission": {
+        "enabled": true,
+        "allowedUsers": [
+          "test"
+        ]
+      }
+    }
+  ]
+}
