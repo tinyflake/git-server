@@ -6,4 +6,6 @@ release/
 .env
 backend/repos/
 backend/logs/
+backend/temp/
+backend/backup/
 repos/

@@ -211,6 +211,21 @@ function copyConfigFiles() {
 	console.log("  Creating empty logs directory...")
 	fs.mkdirSync(path.join(backendRelease, "logs"), { recursive: true })
 
+	// 创建空的 temp 目录（用于数据迁移）
+	console.log("  Creating empty temp directory...")
+	fs.mkdirSync(path.join(backendRelease, "temp"), { recursive: true })
+
+	// 创建空的 backup 目录（用于数据迁移）
+	console.log("  Creating empty backup directory...")
+	fs.mkdirSync(path.join(backendRelease, "backup"), { recursive: true })
+
+	// 复制 nodemon.json（如果存在）
+	const nodemonPath = path.join(BACKEND_DIR, "nodemon.json")
+	if (fs.existsSync(nodemonPath)) {
+		console.log("  Copying nodemon.json...")
+		fs.copySync(nodemonPath, path.join(backendRelease, "nodemon.json"))
+	}
+
 	// 复制package.json（只包含dependencies）
 	const packageJson = fs.readJsonSync(path.join(BACKEND_DIR, "package.json"))
 	const releasePackageJson = {
@@ -261,6 +276,20 @@ node app.js`
 	// 创建README
 	const readme = `# Git Server - Release Package
 
+## 版本信息
+
+版本：v2.1.0
+发布日期：2026-01-16
+
+## 新功能
+
+### 数据迁移（超级管理员专属）
+- ✨ 一键导出所有数据（用户、仓库、代码）
+- ✨ 一键导入备份数据
+- ✨ 实时进度显示
+- ✨ 自动备份和回滚
+- ✨ 支持版本升级时的数据迁移
+
 ## 安装依赖
 
 首次使用前，需要安装依赖：
@@ -289,6 +318,8 @@ cd ..
 
 ## 启动服务
 
+### 生产环境（推荐）
+
 双击 \`start.bat\` 或运行：
 
 \`\`\`bash
@@ -296,17 +327,102 @@ cd backend
 node app.js
 \`\`\`
 
+### 开发环境
+
+如果需要自动重启功能：
+
+\`\`\`bash
+cd backend
+npm install -g nodemon
+nodemon app.js
+\`\`\`
+
+注意：nodemon.json 已配置忽略 temp、backup、logs 等目录，避免数据迁移时自动重启。
+
 ## 访问
 
 浏览器访问：http://localhost:9001
 
 默认管理员账号：admin / 123456
 
+**⚠️ 重要：首次登录后请立即修改密码！**
+
+## 数据迁移使用
+
+### 导出数据
+
+1. 使用超级管理员账户登录
+2. 点击用户菜单 → "数据迁移"
+3. 点击"导出所有数据"
+4. 等待导出完成并下载 ZIP 文件
+
+### 导入数据
+
+1. 使用超级管理员账户登录
+2. 点击用户菜单 → "数据迁移"
+3. 上传之前导出的 ZIP 文件
+4. 点击"开始导入"并确认
+5. 等待导入完成
+6. 使用备份中的账户密码重新登录
+
+**⚠️ 警告：导入会覆盖所有现有数据，请谨慎操作！**
+
+## 目录结构
+
+\`\`\`
+release/
+├── backend/
+│   ├── app.js              # 主程序（已混淆）
+│   ├── routes/             # 路由（已混淆）
+│   ├── utils/              # 工具函数（已混淆）
+│   ├── config/             # 配置文件
+│   │   ├── users.json      # 用户数据
+│   │   └── repo-config.json # 仓库配置
+│   ├── dist/               # 前端静态文件
+│   ├── repos/              # Git 仓库存储目录
+│   ├── logs/               # 日志目录
+│   ├── temp/               # 临时文件目录（数据迁移用）
+│   ├── backup/             # 备份目录（数据迁移用）
+│   ├── nodemon.json        # Nodemon 配置
+│   └── package.json        # 依赖配置
+├── config.json             # 服务器配置
+└── start.bat               # 启动脚本
+\`\`\`
+
 ## 注意事项
 
-- 需要安装 Node.js (https://nodejs.org/)
+- 需要安装 Node.js v16+ (https://nodejs.org/)
+- 需要安装 Git (https://git-scm.com/)
 - 首次启动前请先安装依赖
 - 修改配置后需要重启服务
+- 定期导出数据作为备份
+- temp 和 backup 目录会自动清理旧文件
+
+## 故障排除
+
+### 端口被占用
+
+修改 \`config.json\` 中的端口号，或关闭占用端口的程序。
+
+### 数据迁移失败
+
+1. 检查磁盘空间是否足够
+2. 检查备份文件是否完整
+3. 查看 backend/logs 目录中的日志文件
+4. 如果使用 nodemon，确保 nodemon.json 配置正确
+
+### 无法访问
+
+1. 检查防火墙设置
+2. 确保端口已开放
+3. 检查 config.json 配置是否正确
+
+## 技术支持
+
+如有问题，请查看：
+- 完整文档：README.md
+- 数据迁移指南：docs/DATA-MIGRATION-GUIDE.md
+- 更新日志：CHANGELOG.md
 `
 
 	fs.writeFileSync(path.join(RELEASE_DIR, "README.md"), readme)

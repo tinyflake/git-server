@@ -43,6 +43,13 @@
 								<el-icon><Document /></el-icon>
 								操作日志
 							</el-dropdown-item>
+							<el-dropdown-item
+								v-if="isSuperAdmin"
+								command="migration"
+							>
+								<el-icon><Upload /></el-icon>
+								数据迁移
+							</el-dropdown-item>
 							<el-dropdown-item command="changePassword">
 								<el-icon><Key /></el-icon>
 								修改密码
@@ -89,6 +96,7 @@ import {
 	Lock,
 	Document,
 	FolderOpened,
+	Upload,
 } from "@element-plus/icons-vue"
 
 defineProps({

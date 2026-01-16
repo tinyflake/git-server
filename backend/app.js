@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth-routes")
 const userManagementRoutes = require("./routes/user-management-routes")
 const repoManagementRoutes = require("./routes/repo-management-routes")
 const operationLogRoutes = require("./routes/operation-log-routes")
+const dataMigrationRoutes = require("./routes/data-migration-routes")
 
 // 导入工具模块
 const { initUsersConfig } = require("./utils/auth-utils")
@@ -75,6 +76,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/users", userManagementRoutes)
 app.use("/api/repos", repoManagementRoutes)
 app.use("/api/logs", operationLogRoutes)
+app.use("/api/migration", dataMigrationRoutes)
 app.use("/api/repo", repoRoutes)
 // app.use("/api/users", userRoutes) // 旧的用户路由，已被userManagementRoutes替代
 app.use("/git", gitHttpRoutes)

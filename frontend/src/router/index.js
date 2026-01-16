@@ -53,6 +53,12 @@ const routes = [
 				component: () => import("../views/OperationLogs.vue"),
 				meta: { requiresAdmin: true },
 			},
+			{
+				path: "migration",
+				name: "DataMigration",
+				component: () => import("../views/DataMigration.vue"),
+				meta: { requiresAdmin: true, requiresSuperAdmin: true },
+			},
 		],
 	},
 ]
@@ -66,10 +72,17 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
 	const isLoggedIn = authUtils.isLoggedIn()
 	const isAdmin = authUtils.isAdmin()
+	const isSuperAdmin = authUtils.isSuperAdmin()
 
 	// 需要登录的页面
 	if (to.meta.requiresAuth && !isLoggedIn) {
 		next({ name: "Login", query: { redirect: to.fullPath } })
+		return
+	}
+
+	// 需要超级管理员权限的页面
+	if (to.meta.requiresSuperAdmin && !isSuperAdmin) {
+		next({ name: "Home" })
 		return
 	}
 

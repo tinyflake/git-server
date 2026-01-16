@@ -1,0 +1,12 @@
+{
+	"ignore": [
+		"temp/**",
+		"backup/**",
+		"logs/**",
+		"node_modules/**",
+		"config/**"
+	],
+	"watch": ["*.js", "routes/**/*.js", "utils/**/*.js"],
+	"ext": "js,json",
+	"delay": 1000
+}

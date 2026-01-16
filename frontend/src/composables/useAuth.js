@@ -50,6 +50,9 @@ export function useAuth() {
 			case "logs":
 				router.push("/logs")
 				break
+			case "migration":
+				router.push("/migration")
+				break
 			case "changePassword":
 				return "changePassword"
 			case "logout":
