@@ -9,15 +9,15 @@
 ```json
 "repository": {
   "type": "git",
-  "url": "https://github.com/yourusername/git-server.git"
+  "url": "https://github.com/tinyflake/git-server.git"
 },
 "bugs": {
-  "url": "https://github.com/yourusername/git-server/issues"
+  "url": "https://github.com/tinyflake/git-server/issues"
 },
-"homepage": "https://github.com/yourusername/git-server#readme",
+"homepage": "https://github.com/tinyflake/git-server#readme",
 ```
 
-将 `yourusername` 改为你的 GitHub 用户名。
+将 `tinyflake` 改为你的 GitHub 用户名。
 
 ### 2. 检查包名
 

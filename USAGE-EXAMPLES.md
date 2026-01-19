@@ -340,6 +340,6 @@ git pull origin main
 
 ## 📚 更多信息
 
-- [完整文档](https://github.com/yourusername/git-server)
-- [API 文档](https://github.com/yourusername/git-server/blob/main/README.md)
-- [问题反馈](https://github.com/yourusername/git-server/issues)
+- [完整文档](https://github.com/tinyflake/git-server)
+- [API 文档](https://github.com/tinyflake/git-server/blob/main/README.md)
+- [问题反馈](https://github.com/tinyflake/git-server/issues)

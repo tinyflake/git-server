@@ -54,12 +54,6 @@
 ```bash
 # 全局安装
 npm install -g git-server
-
-# 启动服务器
-git-server
-
-# 或者无需安装直接运行
-npx git-server
 ```
 
 访问 http://localhost:3000，使用默认账号 `admin / 123456` 登录。

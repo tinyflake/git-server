@@ -1,6 +1,6 @@
 {
 	"name": "git-server",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"description": "基于 Node.js + Vue3 的现代化,轻量化 Git 仓库管理系统，提供完整的仓库管理、代码查看和权限控制功能",
 	"main": "index.js",
 	"bin": {
@@ -20,12 +20,12 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/yourusername/git-server.git"
+		"url": "https://github.com/tinyflake/git-server.git"
 	},
 	"bugs": {
-		"url": "https://github.com/yourusername/git-server/issues"
+		"url": "https://github.com/tinyflake/git-server/issues"
 	},
-	"homepage": "https://github.com/yourusername/git-server#readme",
+	"homepage": "https://github.com/tinyflake/git-server#readme",
 	"engines": {
 		"node": ">=16.0.0"
 	},

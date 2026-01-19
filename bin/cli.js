@@ -37,7 +37,7 @@ function showHelp() {
   git-server init                      # 初始化配置文件
   git-server --help                    # 显示帮助
 
-更多信息: https://github.com/yourusername/git-server
+更多信息: https://github.com/tinyflake/git-server
   `)
 }
 
