@@ -9,3 +9,4 @@ backend/logs/
 backend/temp/
 backend/backup/
 repos/
+verdaccio-storage/

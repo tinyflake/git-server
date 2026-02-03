@@ -70,7 +70,7 @@ router.post("/config", authenticateJWT, requireSuperAdmin, (req, res) => {
 				req.user.username,
 				"update_config",
 				"系统配置",
-				`服务器: ${serverIP}:${serverPort}`
+				`服务器: ${serverIP}:${serverPort}`,
 			)
 
 			res.json({
@@ -172,7 +172,7 @@ router.post("/create", authenticateJWT, requireAdmin, (req, res) => {
 		req.user.username,
 		"create_repo",
 		repoName,
-		`创建仓库，路径: ${finalRepoPath}`
+		`创建仓库，路径: ${finalRepoPath}`,
 	)
 
 	// 构建Git服务URL
@@ -228,7 +228,7 @@ router.delete(
 				return res.json({ code: 404, msg: "仓库配置异常" })
 			}
 			const repoIndex = config.repoList.findIndex(
-				(repo) => repo.repoName === repoName
+				(repo) => repo.repoName === repoName,
 			)
 
 			if (repoIndex === -1) {
@@ -249,7 +249,7 @@ router.delete(
 			}
 
 			console.log(
-				`删除仓库: ${repoName}, 路径: ${repoPath}, 操作者: ${req.user.username}, 创建者: ${repo.creator}`
+				`删除仓库: ${repoName}, 路径: ${repoPath}, 操作者: ${req.user.username}, 创建者: ${repo.creator}`,
 			)
 
 			// 删除仓库文件夹
@@ -269,7 +269,7 @@ router.delete(
 				req.user.username,
 				"delete_repo",
 				repoName,
-				`删除仓库，路径: ${repoPath}, 创建者: ${repo.creator || "未知"}`
+				`删除仓库，路径: ${repoPath}, 创建者: ${repo.creator || "未知"}`,
 			)
 
 			res.json({
@@ -284,7 +284,7 @@ router.delete(
 			console.error("删除仓库失败:", error)
 			res.json({ code: 500, msg: `删除仓库失败：${error.message}` })
 		}
-	}
+	},
 )
 
 // 3. 修改仓库存储路径（核心！实现地址自定义切换）
@@ -295,7 +295,7 @@ router.post("/update-path", authenticateJWT, requireSuperAdmin, (req, res) => {
 		return res.json({ code: 400, msg: "仓库配置异常" })
 	}
 	const repoIndex = config.repoList.findIndex(
-		(repo) => repo.repoName === repoName
+		(repo) => repo.repoName === repoName,
 	)
 
 	if (repoIndex === -1) return res.json({ code: 400, msg: "仓库不存在" })
@@ -314,7 +314,7 @@ router.post("/update-path", authenticateJWT, requireSuperAdmin, (req, res) => {
 			req.user.username,
 			"update_repo_path",
 			repoName,
-			`修改仓库路径: ${oldPath} -> ${newPath}`
+			`修改仓库路径: ${oldPath} -> ${newPath}`,
 		)
 
 		res.json({ code: 200, msg: "路径修改成功" })
@@ -415,7 +415,7 @@ router.get("/file-content", async (req, res) => {
 					{
 						cwd: repoPath,
 						stdio: ["pipe", "pipe", "pipe"],
-					}
+					},
 				)
 
 				let stdout = ""
@@ -508,7 +508,7 @@ router.get("/file-list", async (req, res) => {
 					{
 						cwd: repoPath,
 						stdio: ["pipe", "pipe", "pipe"],
-					}
+					},
 				)
 
 				let stdout = ""
@@ -621,6 +621,11 @@ router.get("/latest-commit", async (req, res) => {
 
 		const { spawn } = require("child_process")
 
+		// 获取仓库名称（用于查找操作日志）
+		const config = fs.readJsonSync(REPO_CONFIG_PATH)
+		const repo = config.repoList.find((r) => r.repoPath === repoPath)
+		const repoName = repo ? repo.repoName : null
+
 		return new Promise((resolve) => {
 			// 先尝试main分支，再尝试master分支
 			const tryGetCommit = (branch) => {
@@ -629,14 +634,14 @@ router.get("/latest-commit", async (req, res) => {
 					[
 						"log",
 						"-1",
-						"--format=%H|%an|%ae|%ad|%s",
+						"--format=%H|%an|%ae|%ad|%s|%ct",
 						"--date=iso",
 						branch,
 					],
 					{
 						cwd: repoPath,
 						stdio: ["pipe", "pipe", "pipe"],
-					}
+					},
 				)
 
 				let stdout = ""
@@ -650,19 +655,90 @@ router.get("/latest-commit", async (req, res) => {
 					stderr += data.toString()
 				})
 
-				gitProcess.on("close", (code) => {
+				gitProcess.on("close", async (code) => {
 					if (code === 0 && stdout.trim()) {
 						const commitInfo = stdout.trim().split("|")
-						if (commitInfo.length >= 5) {
+						if (commitInfo.length >= 6) {
+							const commitHash = commitInfo[0]
+							const gitAuthor = commitInfo[1]
+							const gitEmail = commitInfo[2]
+							const commitDate = commitInfo[3]
+							const commitMessage = commitInfo[4]
+							const commitTimestamp =
+								parseInt(commitInfo[5]) * 1000 // 转换为毫秒
+
+							// 尝试从操作日志中找到对应的push操作
+							let systemUser = null
+							if (repoName) {
+								try {
+									const logPath = path.join(
+										__dirname,
+										"../logs/git-operations.json",
+									)
+									if (fs.existsSync(logPath)) {
+										const logData = fs.readJsonSync(logPath)
+
+										// 查找最近的push操作，时间范围在提交时间前后5分钟内
+										const pushLogs = logData.logs
+											.filter(
+												(log) =>
+													log.operation === "push" &&
+													log.repository ===
+														repoName &&
+													log.success === true &&
+													log.user &&
+													Math.abs(
+														new Date(
+															log.timestamp,
+														).getTime() -
+															commitTimestamp,
+													) <
+														5 * 60 * 1000, // 5分钟内
+											)
+											.sort(
+												(a, b) =>
+													new Date(
+														b.timestamp,
+													).getTime() -
+													new Date(
+														a.timestamp,
+													).getTime(),
+											) // 按时间倒序
+
+										if (pushLogs.length > 0) {
+											systemUser = pushLogs[0].user
+										}
+									}
+								} catch (error) {
+									console.warn("查找push操作日志失败:", error)
+								}
+							}
+
+							// 构建响应数据
+							const responseData = {
+								hash: commitHash,
+								date: commitDate,
+								message: commitMessage,
+								gitAuthor: gitAuthor,
+								gitEmail: gitEmail,
+							}
+
+							// 如果找到了系统用户，使用系统用户信息
+							if (systemUser) {
+								responseData.author = systemUser.username
+								responseData.email = systemUser.email || ""
+								responseData.authorType = "system" // 标记为系统用户
+								responseData.systemUser = systemUser
+							} else {
+								// 否则使用git配置的用户信息
+								responseData.author = gitAuthor
+								responseData.email = gitEmail
+								responseData.authorType = "git" // 标记为git配置用户
+							}
+
 							res.json({
 								code: 200,
-								data: {
-									hash: commitInfo[0],
-									author: commitInfo[1],
-									email: commitInfo[2],
-									date: commitInfo[3],
-									message: commitInfo[4],
-								},
+								data: responseData,
 							})
 						} else {
 							res.json({
@@ -729,15 +805,49 @@ router.get("/versions", async (req, res) => {
 
 		const { spawn } = require("child_process")
 
+		// 获取仓库名称（用于查找操作日志）
+		const config = fs.readJsonSync(REPO_CONFIG_PATH)
+		const repo = config.repoList.find((r) => r.repoPath === repoPath)
+		const repoName = repo ? repo.repoName : null
+
+		// 预加载操作日志
+		let pushLogs = []
+		if (repoName) {
+			try {
+				const logPath = path.join(
+					__dirname,
+					"../logs/git-operations.json",
+				)
+				if (fs.existsSync(logPath)) {
+					const logData = fs.readJsonSync(logPath)
+					pushLogs = logData.logs
+						.filter(
+							(log) =>
+								log.operation === "push" &&
+								log.repository === repoName &&
+								log.success === true &&
+								log.user,
+						)
+						.sort(
+							(a, b) =>
+								new Date(b.timestamp).getTime() -
+								new Date(a.timestamp).getTime(),
+						)
+				}
+			} catch (error) {
+				console.warn("加载push操作日志失败:", error)
+			}
+		}
+
 		return new Promise((resolve) => {
 			// 先尝试main分支，再尝试master分支
 			const tryGetVersions = (branch) => {
-				// 获取所有提交记录，限制数量避免过多
+				// 获取所有提交记录，限制数量避免过多，添加时间戳
 				const gitProcess = spawn(
 					"git",
 					[
 						"log",
-						"--format=%H|%an|%ae|%ad|%s",
+						"--format=%H|%an|%ae|%ad|%s|%ct",
 						"--date=iso",
 						branch,
 						"-20",
@@ -745,7 +855,7 @@ router.get("/versions", async (req, res) => {
 					{
 						cwd: repoPath,
 						stdio: ["pipe", "pipe", "pipe"],
-					}
+					},
 				)
 
 				let stdout = ""
@@ -766,19 +876,53 @@ router.get("/versions", async (req, res) => {
 							.split("\n")
 							.map((line, index) => {
 								const commitInfo = line.split("|")
-								if (commitInfo.length >= 5) {
-									return {
+								if (commitInfo.length >= 6) {
+									const commitTimestamp =
+										parseInt(commitInfo[5]) * 1000 // 转换为毫秒
+
+									// 查找对应的push操作
+									let systemUser = null
+									const matchingPushLog = pushLogs.find(
+										(log) =>
+											Math.abs(
+												new Date(
+													log.timestamp,
+												).getTime() - commitTimestamp,
+											) <
+											5 * 60 * 1000, // 5分钟内
+									)
+
+									if (matchingPushLog) {
+										systemUser = matchingPushLog.user
+									}
+
+									const commitData = {
 										hash: commitInfo[0],
 										shortHash: commitInfo[0].substring(
 											0,
-											7
+											7,
 										),
-										author: commitInfo[1],
-										email: commitInfo[2],
+										gitAuthor: commitInfo[1],
+										gitEmail: commitInfo[2],
 										date: commitInfo[3],
 										message: commitInfo[4],
 										isLatest: index === 0,
 									}
+
+									// 设置显示的用户信息
+									if (systemUser) {
+										commitData.author = systemUser.username
+										commitData.email =
+											systemUser.email || ""
+										commitData.authorType = "system"
+										commitData.systemUser = systemUser
+									} else {
+										commitData.author = commitInfo[1]
+										commitData.email = commitInfo[2]
+										commitData.authorType = "git"
+									}
+
+									return commitData
 								}
 								return null
 							})
@@ -795,7 +939,7 @@ router.get("/versions", async (req, res) => {
 										{
 											cwd: repoPath,
 											stdio: ["pipe", "pipe", "pipe"],
-										}
+										},
 									)
 
 									let packageContent = ""
@@ -822,7 +966,7 @@ router.get("/versions", async (req, res) => {
 													try {
 														const packageJson =
 															JSON.parse(
-																packageContent
+																packageContent,
 															)
 														version =
 															packageJson.version ||
@@ -830,7 +974,7 @@ router.get("/versions", async (req, res) => {
 													} catch (parseError) {
 														console.warn(
 															"解析package.json失败:",
-															parseError
+															parseError,
 														)
 													}
 												}
@@ -839,7 +983,7 @@ router.get("/versions", async (req, res) => {
 													...commit,
 													version: version,
 												})
-											}
+											},
 										)
 
 										packageProcess.on("error", () => {
@@ -855,7 +999,7 @@ router.get("/versions", async (req, res) => {
 										version: "未知",
 									}
 								}
-							})
+							}),
 						)
 
 						res.json({
@@ -930,7 +1074,7 @@ router.get("/file-content-by-version", async (req, res) => {
 				{
 					cwd: repoPath,
 					stdio: ["pipe", "pipe", "pipe"],
-				}
+				},
 			)
 
 			let stdout = ""
@@ -1014,7 +1158,7 @@ router.get("/package-info", async (req, res) => {
 					{
 						cwd: repoPath,
 						stdio: ["pipe", "pipe", "pipe"],
-					}
+					},
 				)
 
 				let stdout = ""
@@ -1041,6 +1185,14 @@ router.get("/package-info", async (req, res) => {
 									license: packageJson.license || "MIT",
 									keywords: packageJson.keywords || [],
 									author: packageJson.author || "未知",
+									dependencies:
+										packageJson.dependencies || {},
+									devDependencies:
+										packageJson.devDependencies || {},
+									peerDependencies:
+										packageJson.peerDependencies || {},
+									optionalDependencies:
+										packageJson.optionalDependencies || {},
 								},
 							})
 						} catch (parseError) {
@@ -1064,6 +1216,10 @@ router.get("/package-info", async (req, res) => {
 								license: "MIT",
 								keywords: [],
 								author: "未知",
+								dependencies: {},
+								devDependencies: {},
+								peerDependencies: {},
+								optionalDependencies: {},
 							},
 						})
 						resolve()
@@ -1122,7 +1278,7 @@ router.get("/download-version", async (req, res) => {
 		res.setHeader("Content-Type", "application/zip")
 		res.setHeader(
 			"Content-Disposition",
-			`attachment; filename="${filename}"`
+			`attachment; filename="${filename}"`,
 		)
 
 		// 使用git archive命令创建压缩包
@@ -1281,7 +1437,7 @@ router.get("/file-tree", async (req, res) => {
 
 					if (code === 0) {
 						console.log(
-							`✅ Successfully listed files on branch: ${branchName}`
+							`✅ Successfully listed files on branch: ${branchName}`,
 						)
 
 						const files = stdout
@@ -1328,14 +1484,14 @@ router.get("/file-tree", async (req, res) => {
 					} else if (fallbackBranches.length > 0) {
 						// 尝试下一个备选分支
 						console.log(
-							`⚠️ Branch ${branchName} failed, trying fallback...`
+							`⚠️ Branch ${branchName} failed, trying fallback...`,
 						)
 						const nextBranch = fallbackBranches[0]
 						const remainingBranches = fallbackBranches.slice(1)
 						tryListFiles(nextBranch, remainingBranches)
 					} else {
 						console.log(
-							`❌ All branches failed. Last error: ${stderr}`
+							`❌ All branches failed. Last error: ${stderr}`,
 						)
 						res.json({
 							code: 404,
@@ -1370,7 +1526,7 @@ router.get("/file-tree", async (req, res) => {
 			}
 
 			console.log(
-				`🔄 Fallback branches: ${fallbackBranches.join(", ") || "none"}`
+				`🔄 Fallback branches: ${fallbackBranches.join(", ") || "none"}`,
 			)
 			tryListFiles(actualBranch, fallbackBranches)
 		})
@@ -1418,7 +1574,7 @@ router.get(
 				const hasPermission = canViewCode(
 					req.user.username,
 					req.user.role,
-					repo.repoName
+					repo.repoName,
 				)
 
 				if (!hasPermission) {
@@ -1439,7 +1595,7 @@ router.get(
 						{
 							cwd: repoPath,
 							stdio: ["pipe", "pipe", "pipe"],
-						}
+						},
 					)
 
 					let stdout = ""
@@ -1470,12 +1626,12 @@ router.get(
 								res.setHeader(
 									"Content-Disposition",
 									`attachment; filename="${encodeURIComponent(
-										fileName
-									)}"`
+										fileName,
+									)}"`,
 								)
 								res.setHeader(
 									"Content-Type",
-									"application/octet-stream"
+									"application/octet-stream",
 								)
 								res.send(buffer)
 								resolve()
@@ -1544,7 +1700,7 @@ router.get(
 				error: error.message,
 			})
 		}
-	}
+	},
 )
 
 // 检查代码查看权限
@@ -1570,7 +1726,7 @@ router.get("/check-code-permission", authenticateJWT, async (req, res) => {
 		// 检查代码查看权限
 		const hasPermission = await authUtils.checkCodeViewPermission(
 			username,
-			repoPath
+			repoPath,
 		)
 
 		res.json({
@@ -1647,13 +1803,13 @@ router.get("/branches", async (req, res) => {
 							(branch) =>
 								branch.name &&
 								branch.name !== "HEAD" &&
-								!branch.name.includes("->")
+								!branch.name.includes("->"),
 						)
 						// 去重
 						.filter(
 							(branch, index, self) =>
 								index ===
-								self.findIndex((b) => b.name === branch.name)
+								self.findIndex((b) => b.name === branch.name),
 						)
 
 					res.json({
@@ -1714,6 +1870,40 @@ router.get("/commits", async (req, res) => {
 
 		const { spawn } = require("child_process")
 
+		// 获取仓库名称（用于查找操作日志）
+		const config = fs.readJsonSync(REPO_CONFIG_PATH)
+		const repo = config.repoList.find((r) => r.repoPath === repoPath)
+		const repoName = repo ? repo.repoName : null
+
+		// 预加载操作日志
+		let pushLogs = []
+		if (repoName) {
+			try {
+				const logPath = path.join(
+					__dirname,
+					"../logs/git-operations.json",
+				)
+				if (fs.existsSync(logPath)) {
+					const logData = fs.readJsonSync(logPath)
+					pushLogs = logData.logs
+						.filter(
+							(log) =>
+								log.operation === "push" &&
+								log.repository === repoName &&
+								log.success === true &&
+								log.user,
+						)
+						.sort(
+							(a, b) =>
+								new Date(b.timestamp).getTime() -
+								new Date(a.timestamp).getTime(),
+						)
+				}
+			} catch (error) {
+				console.warn("加载push操作日志失败:", error)
+			}
+		}
+
 		return new Promise((resolve) => {
 			const tryGetCommits = (branchName) => {
 				// 获取提交历史，包含分支信息
@@ -1722,7 +1912,7 @@ router.get("/commits", async (req, res) => {
 					[
 						"log",
 						"--all",
-						"--format=%H|%h|%an|%ae|%ad|%s|%D",
+						"--format=%H|%h|%an|%ae|%ad|%s|%D|%ct",
 						"--date=iso",
 						`--skip=${skip}`,
 						`-n`,
@@ -1731,7 +1921,7 @@ router.get("/commits", async (req, res) => {
 					{
 						cwd: repoPath,
 						stdio: ["pipe", "pipe", "pipe"],
-					}
+					},
 				)
 
 				let stdout = ""
@@ -1752,8 +1942,11 @@ router.get("/commits", async (req, res) => {
 							.split("\n")
 							.map((line) => {
 								const parts = line.split("|")
-								if (parts.length >= 6) {
+								if (parts.length >= 7) {
 									const refs = parts[6] || ""
+									const commitTimestamp = parts[7]
+										? parseInt(parts[7]) * 1000
+										: null
 									const branches = []
 									const tags = []
 
@@ -1768,18 +1961,18 @@ router.get("/commits", async (req, res) => {
 												ref.startsWith("tag: ")
 											) {
 												tags.push(
-													ref.replace("tag: ", "")
+													ref.replace("tag: ", ""),
 												)
 											} else {
 												// 移除 origin/ 前缀
 												const branchName = ref.replace(
 													/^origin\//,
-													""
+													"",
 												)
 												if (
 													branchName &&
 													!branches.includes(
-														branchName
+														branchName,
 													)
 												) {
 													branches.push(branchName)
@@ -1788,16 +1981,50 @@ router.get("/commits", async (req, res) => {
 										})
 									}
 
-									return {
+									// 查找对应的push操作
+									let systemUser = null
+									if (commitTimestamp) {
+										const matchingPushLog = pushLogs.find(
+											(log) =>
+												Math.abs(
+													new Date(
+														log.timestamp,
+													).getTime() -
+														commitTimestamp,
+												) <
+												5 * 60 * 1000, // 5分钟内
+										)
+
+										if (matchingPushLog) {
+											systemUser = matchingPushLog.user
+										}
+									}
+
+									const commitData = {
 										hash: parts[0],
 										shortHash: parts[1],
-										author: parts[2],
-										email: parts[3],
+										gitAuthor: parts[2],
+										gitEmail: parts[3],
 										date: parts[4],
 										message: parts[5],
 										branches: branches,
 										tags: tags,
 									}
+
+									// 设置显示的用户信息
+									if (systemUser) {
+										commitData.author = systemUser.username
+										commitData.email =
+											systemUser.email || ""
+										commitData.authorType = "system"
+										commitData.systemUser = systemUser
+									} else {
+										commitData.author = parts[2]
+										commitData.email = parts[3]
+										commitData.authorType = "git"
+									}
+
+									return commitData
 								}
 								return null
 							})

@@ -1,5 +1,6 @@
 const fs = require("fs-extra")
 const path = require("path")
+const { getCurrentUTC8Timestamp } = require("./time-utils")
 
 const OPERATION_LOGS_PATH = path.join(__dirname, "../logs/operation-logs.json")
 
@@ -28,7 +29,7 @@ function logOperation(operator, action, target, details = "") {
 
 		const logEntry = {
 			id: Date.now().toString(),
-			timestamp: new Date().toISOString(),
+			timestamp: getCurrentUTC8Timestamp(),
 			operator,
 			action,
 			target,

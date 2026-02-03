@@ -72,12 +72,28 @@
 										name="dependencies"
 									>
 										<div class="tab-content">
-											<div class="dependencies-content">
-												<h3>依赖项</h3>
-												<p class="no-dependencies">
-													此包暂无依赖项
-												</p>
-											</div>
+											<DependenciesTab
+												:package-loading="
+													packageLoading
+												"
+												:package-error="packageError"
+												:dependencies="dependencies"
+												:dev-dependencies="
+													devDependencies
+												"
+												:peer-dependencies="
+													peerDependencies
+												"
+												:optional-dependencies="
+													optionalDependencies
+												"
+												:has-dependencies="
+													hasDependencies
+												"
+												:dependency-stats="
+													dependencyStats
+												"
+											/>
 										</div>
 									</el-tab-pane>
 
@@ -175,18 +191,13 @@
 					</div>
 
 					<!-- 右侧信息面板 -->
-					<RepoSidebar
+					<GitRepoSidebar
 						v-if="repoInfo && showSidebar"
 						:repo-info="repoInfo"
 						:git-url="gitUrl"
-						:server-i-p="serverIP"
-						:server-port="serverPort"
 						:repo-name="repoName"
-						:current-version="currentVersion"
 						:display-version-info="displayVersionInfo"
 						:format-date="formatDate"
-						@reset-version="resetToLatestVersion"
-						@download-version="downloadCurrentVersion"
 					/>
 				</div>
 			</div>
@@ -204,7 +215,9 @@
 						<div class="guide-section">
 							<p>使用以下命令克隆仓库到本地：</p>
 							<div class="command-box">
-								<code>git clone {{ gitUrl }}</code>
+								<span class="code-text"
+									>git clone {{ gitUrl }}</span
+								>
 								<el-button
 									size="small"
 									@click="
@@ -224,15 +237,15 @@
 								<div class="step-content">
 									<p>添加远程仓库：</p>
 									<div class="command-box">
-										<code
+										<span class="code-text"
 											>git remote add origin
-											{{ gitUrl }}</code
+											{{ gitUrl }}</span
 										>
 										<el-button
 											size="small"
 											@click="
 												copyToClipboard(
-													`git remote add origin ${gitUrl}`
+													`git remote add origin ${gitUrl}`,
 												)
 											"
 											:icon="CopyDocument"
@@ -246,12 +259,14 @@
 								<div class="step-content">
 									<p>推送代码：</p>
 									<div class="command-box">
-										<code>git push -u origin main</code>
+										<span class="code-text"
+											>git push -u origin main</span
+										>
 										<el-button
 											size="small"
 											@click="
 												copyToClipboard(
-													'git push -u origin main'
+													'git push -u origin main',
 												)
 											"
 											:icon="CopyDocument"
@@ -278,7 +293,6 @@ import { ref, onMounted, computed, watch } from "vue"
 import { useRouter } from "vue-router"
 import { ElMessage } from "element-plus"
 import { CopyDocument } from "@element-plus/icons-vue"
-import { repoApi } from "../api/repo.js"
 import configManager from "../utils/config"
 import "highlight.js/styles/github.css"
 
@@ -288,7 +302,8 @@ import ReadmeTab from "../components/repo/ReadmeTab.vue"
 import VersionsTab from "../components/repo/VersionsTab.vue"
 import FilesTab from "../components/repo/FilesTab.vue"
 import CommitsTab from "../components/repo/CommitsTab.vue"
-import RepoSidebar from "../components/repo/RepoSidebar.vue"
+import DependenciesTab from "../components/repo/DependenciesTab.vue"
+import GitRepoSidebar from "../components/repo/GitRepoSidebar.vue"
 
 // 导入composables
 import { useRepoInfo } from "../composables/useRepoInfo.js"
@@ -297,6 +312,7 @@ import { useReadme } from "../composables/useReadme.js"
 import { useVersions } from "../composables/useVersions.js"
 import { useFileBrowser } from "../composables/useFileBrowser.js"
 import { useCommits } from "../composables/useCommits.js"
+import { usePackageInfo } from "../composables/usePackageInfo.js"
 
 const props = defineProps({
 	name: {
@@ -333,8 +349,6 @@ const {
 	currentVersion,
 	loadVersions,
 	switchToVersion,
-	resetToLatestVersion,
-	downloadCurrentVersion,
 } = useVersions(repoInfo)
 const {
 	filesLoading,
@@ -365,6 +379,18 @@ const {
 	loadCommits,
 	loadMoreCommits,
 } = useCommits(repoInfo)
+const {
+	packageInfo,
+	packageLoading,
+	packageError,
+	dependencies,
+	devDependencies,
+	peerDependencies,
+	optionalDependencies,
+	hasDependencies,
+	dependencyStats,
+	loadPackageInfo,
+} = usePackageInfo(repoInfo)
 
 // 计算属性
 const gitUrl = computed(() => {
@@ -375,9 +401,6 @@ const gitUrl = computed(() => {
 const showSidebar = computed(() => {
 	return activeTab.value !== "files"
 })
-
-const serverIP = computed(() => configManager.getDisplayConfig().serverIP)
-const serverPort = computed(() => configManager.getDisplayConfig().serverPort)
 
 const displayVersionInfo = computed(() => {
 	if (currentVersion.value) {
@@ -457,7 +480,7 @@ const handleSwitchToVersion = async (version) => {
 		renderedReadme,
 		readmeHeadings,
 		showToc,
-		readmeLoading
+		readmeLoading,
 	)
 }
 
@@ -465,6 +488,17 @@ const handleSwitchToVersion = async (version) => {
 onMounted(() => {
 	loadRepoInfo()
 })
+
+// 监听repoInfo变化，加载package信息
+watch(
+	repoInfo,
+	(newRepoInfo) => {
+		if (newRepoInfo) {
+			loadPackageInfo()
+		}
+	},
+	{ immediate: true },
+)
 
 // 监听器
 watch(
@@ -475,7 +509,7 @@ watch(
 			loadVersions()
 		}
 	},
-	{ immediate: true }
+	{ immediate: true },
 )
 
 watch(activeTab, async (newTab) => {
@@ -501,8 +535,8 @@ watch(activeTab, async (newTab) => {
 .repo-detail {
 	min-height: 100vh;
 	background: #fafafa;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-		sans-serif;
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* 主要内容区域 */
@@ -581,18 +615,6 @@ watch(activeTab, async (newTab) => {
 	padding: 32px 24px;
 }
 
-/* 依赖内容 */
-.dependencies-content h3 {
-	margin: 0 0 24px 0;
-	font-size: 20px;
-	color: #111827;
-}
-
-.no-dependencies {
-	color: #6b7280;
-	font-style: italic;
-}
-
 /* 错误状态 */
 .error-state {
 	display: flex;
@@ -657,12 +679,13 @@ watch(activeTab, async (newTab) => {
 	background: #f9fafb;
 	border: 1px solid #e5e7eb;
 	border-radius: 6px;
-	font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas",
-		"Monaco", monospace;
+	font-family:
+		"JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", "Monaco",
+		monospace;
 	min-height: 36px;
 }
 
-.command-box code {
+.command-box .code-text {
 	flex: 1;
 	background: none;
 	border: none;

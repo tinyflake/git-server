@@ -3,6 +3,7 @@ const path = require("path")
 const crypto = require("crypto")
 const bcrypt = require("bcryptjs")
 const { logOperation } = require("./operation-logger")
+const { getCurrentUTC8Timestamp } = require("./time-utils")
 
 // 用户配置文件路径
 const USERS_CONFIG_PATH = path.join(__dirname, "../config/users.json")
@@ -18,7 +19,7 @@ function initUsersConfig() {
 					password: hashPasswordBcrypt("123456"), // 默认密码 123456
 					email: "admin@example.com",
 					role: "super_admin",
-					createdAt: new Date().toISOString(),
+					createdAt: getCurrentUTC8Timestamp(),
 					lastLogin: null,
 				},
 			],
@@ -114,7 +115,7 @@ function updateUserLastLogin(userId) {
 		}
 		const userIndex = config.users.findIndex((user) => user.id === userId)
 		if (userIndex !== -1) {
-			config.users[userIndex].lastLogin = new Date().toISOString()
+			config.users[userIndex].lastLogin = getCurrentUTC8Timestamp()
 			fs.writeJsonSync(USERS_CONFIG_PATH, config, { spaces: 2 })
 		}
 	} catch (error) {
@@ -144,7 +145,7 @@ function createUser(userData, operator) {
 			password: hashPasswordBcrypt(userData.password),
 			email: userData.email || "",
 			role: userData.role || "user",
-			createdAt: new Date().toISOString(),
+			createdAt: getCurrentUTC8Timestamp(),
 			lastLogin: null,
 		}
 
@@ -157,7 +158,7 @@ function createUser(userData, operator) {
 				operator,
 				"create_user",
 				userData.username,
-				`创建用户，角色：${newUser.role}`
+				`创建用户，角色：${newUser.role}`,
 			)
 		}
 
@@ -184,7 +185,7 @@ function deleteUser(username, operator) {
 		}
 
 		const userIndex = config.users.findIndex(
-			(user) => user.username === username
+			(user) => user.username === username,
 		)
 		if (userIndex === -1) {
 			throw new Error("用户不存在")
@@ -204,7 +205,7 @@ function deleteUser(username, operator) {
 			operator,
 			"delete_user",
 			username,
-			`删除用户，角色：${deletedUser.role}`
+			`删除用户，角色：${deletedUser.role}`,
 		)
 
 		return true
@@ -225,7 +226,7 @@ function updateUserRole(username, newRole, operator) {
 		}
 
 		const userIndex = config.users.findIndex(
-			(user) => user.username === username
+			(user) => user.username === username,
 		)
 		if (userIndex === -1) {
 			throw new Error("用户不存在")
@@ -240,7 +241,7 @@ function updateUserRole(username, newRole, operator) {
 			operator,
 			"update_role",
 			username,
-			`角色变更：${oldRole} → ${newRole}`
+			`角色变更：${oldRole} → ${newRole}`,
 		)
 
 		return {
@@ -265,7 +266,7 @@ function updateUserInfo(username, updateData, operator) {
 		}
 
 		const userIndex = config.users.findIndex(
-			(user) => user.username === username
+			(user) => user.username === username,
 		)
 		if (userIndex === -1) {
 			throw new Error("用户不存在")
@@ -279,7 +280,7 @@ function updateUserInfo(username, updateData, operator) {
 			// 检查新用户名是否已存在
 			if (
 				config.users.some(
-					(user) => user.username === updateData.username
+					(user) => user.username === updateData.username,
 				)
 			) {
 				throw new Error("用户名已存在")
@@ -303,7 +304,7 @@ function updateUserInfo(username, updateData, operator) {
 				operator,
 				"update_user",
 				oldUsername,
-				`更新用户信息：${changes.join(", ")}`
+				`更新用户信息：${changes.join(", ")}`,
 			)
 		}
 
@@ -328,7 +329,7 @@ function resetUserPassword(username, newPassword, operator) {
 		}
 
 		const userIndex = config.users.findIndex(
-			(user) => user.username === username
+			(user) => user.username === username,
 		)
 		if (userIndex === -1) {
 			throw new Error("用户不存在")
@@ -358,7 +359,7 @@ function changePassword(username, oldPassword, newPassword) {
 		}
 
 		const userIndex = config.users.findIndex(
-			(user) => user.username === username
+			(user) => user.username === username,
 		)
 		if (userIndex === -1) {
 			throw new Error("用户不存在")
@@ -390,7 +391,7 @@ function parseBasicAuth(authHeader) {
 	try {
 		const base64Credentials = authHeader.slice("Basic ".length)
 		const credentials = Buffer.from(base64Credentials, "base64").toString(
-			"utf8"
+			"utf8",
 		)
 		const [username, password] = credentials.split(":")
 		return { username, password }
@@ -406,7 +407,7 @@ function requireGitAuth(req, res, next) {
 
 	console.log(`🔐 Git Auth check for ${req.path}`)
 	console.log(
-		`   Authorization header: ${authHeader ? "present" : "missing"}`
+		`   Authorization header: ${authHeader ? "present" : "missing"}`,
 	)
 
 	if (!authHeader) {
@@ -427,13 +428,13 @@ function requireGitAuth(req, res, next) {
 	const user = authenticateUser(credentials.username, credentials.password)
 	if (!user) {
 		console.log(
-			`❌ Authentication failed for user: ${credentials.username}`
+			`❌ Authentication failed for user: ${credentials.username}`,
 		)
 		return res.status(401).send("Invalid username or password")
 	}
 
 	console.log(
-		`✅ Authentication successful for user: ${user.username} (${user.role})`
+		`✅ Authentication successful for user: ${user.username} (${user.role})`,
 	)
 	// 将用户信息附加到请求对象
 	req.user = user

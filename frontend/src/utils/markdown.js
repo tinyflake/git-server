@@ -9,15 +9,21 @@ const md = new MarkdownIt({
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return '<pre class="hljs"><code>' +
+        return '<pre class="hljs"><span class="code-html">' +
                hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
-               '</code></pre>'
+               '</span></pre>'
       } catch (__) {}
     }
 
-    return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>'
+    return '<pre class="hljs"><span class="code-html">' + md.utils.escapeHtml(str) + '</span></pre>'
   }
 })
+
+// 将 inline code 从 <code> 替换为 span，避免默认 code 字体难看
+md.renderer.rules.code_inline = function (tokens, idx, options, env, renderer) {
+  const token = tokens[idx]
+  return '<span class="code-inline">' + md.utils.escapeHtml(token.content) + '</span>'
+}
 
 // 自定义标题渲染规则，添加ID属性
 md.renderer.rules.heading_open = function (tokens, idx, options, env, renderer) {

@@ -201,7 +201,7 @@
 							<pre
 								v-else
 								class="code-preview"
-							><code v-html="highlightedCode"></code></pre>
+							><span class="code-html" v-html="highlightedCode"></span></pre>
 						</div>
 					</div>
 				</div>

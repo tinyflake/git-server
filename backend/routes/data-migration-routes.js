@@ -55,7 +55,7 @@ router.post("/export", authenticateJWT, requireSuperAdmin, async (req, res) => {
 		res.setHeader("Content-Type", "application/zip")
 		res.setHeader(
 			"Content-Disposition",
-			`attachment; filename="${filename}"`
+			`attachment; filename="${filename}"`,
 		)
 		res.setHeader("X-Task-Id", taskId)
 
@@ -82,8 +82,8 @@ router.post("/export", authenticateJWT, requireSuperAdmin, async (req, res) => {
 			const percent = Math.min(
 				90,
 				Math.floor(
-					(progress.entries.processed / progress.entries.total) * 90
-				)
+					(progress.entries.processed / progress.entries.total) * 90,
+				),
 			)
 			exportProgress.set(taskId, {
 				progress: percent,
@@ -105,10 +105,10 @@ router.post("/export", authenticateJWT, requireSuperAdmin, async (req, res) => {
 		// 1. 添加 manifest.json（元数据）
 		const configPath = path.join(__dirname, "../config")
 		const usersConfig = await fs.readJson(
-			path.join(configPath, "users.json")
+			path.join(configPath, "users.json"),
 		)
 		const repoConfig = await fs.readJson(
-			path.join(configPath, "repo-config.json")
+			path.join(configPath, "repo-config.json"),
 		)
 
 		const manifest = {
@@ -166,14 +166,17 @@ router.post("/export", authenticateJWT, requireSuperAdmin, async (req, res) => {
 
 		console.log(
 			`✅ 数据导出完成: ${filename} (${(totalBytes / 1024 / 1024).toFixed(
-				2
-			)} MB)`
+				2,
+			)} MB)`,
 		)
 
 		// 5分钟后清理进度记录
-		setTimeout(() => {
-			exportProgress.delete(taskId)
-		}, 5 * 60 * 1000)
+		setTimeout(
+			() => {
+				exportProgress.delete(taskId)
+			},
+			5 * 60 * 1000,
+		)
 	} catch (error) {
 		console.error("❌ 导出数据失败:", error)
 		exportProgress.set(taskId, {
@@ -216,7 +219,7 @@ router.get(
 			code: 200,
 			data: progress,
 		})
-	}
+	},
 )
 
 /**
@@ -311,7 +314,7 @@ router.post(
 				})
 			}
 		}
-	}
+	},
 )
 
 /**
@@ -475,16 +478,22 @@ async function processImport(taskId, uploadedFile) {
 		console.log(`   - 仓库数: ${repoConfig.repoList?.length || 0}`)
 
 		// 清理临时文件（5分钟后）
-		setTimeout(async () => {
-			await fs.remove(tempDir)
-			console.log(`🧹 清理临时文件: ${tempDir}`)
-		}, 5 * 60 * 1000)
+		setTimeout(
+			async () => {
+				await fs.remove(tempDir)
+				console.log(`🧹 清理临时文件: ${tempDir}`)
+			},
+			5 * 60 * 1000,
+		)
 
 		// 保留备份文件24小时
-		setTimeout(async () => {
-			await fs.remove(backupDir)
-			console.log(`🧹 清理备份文件: ${backupDir}`)
-		}, 24 * 60 * 60 * 1000)
+		setTimeout(
+			async () => {
+				await fs.remove(backupDir)
+				console.log(`🧹 清理备份文件: ${backupDir}`)
+			},
+			24 * 60 * 60 * 1000,
+		)
 	} catch (error) {
 		console.error("❌ 导入处理失败:", error)
 
@@ -551,7 +560,7 @@ router.get(
 			code: 200,
 			data: progress,
 		})
-	}
+	},
 )
 
 /**
@@ -566,10 +575,10 @@ router.get("/stats", authenticateJWT, requireSuperAdmin, async (req, res) => {
 
 		// 读取配置
 		const usersConfig = await fs.readJson(
-			path.join(configPath, "users.json")
+			path.join(configPath, "users.json"),
 		)
 		const repoConfig = await fs.readJson(
-			path.join(configPath, "repo-config.json")
+			path.join(configPath, "repo-config.json"),
 		)
 
 		// 计算仓库总大小

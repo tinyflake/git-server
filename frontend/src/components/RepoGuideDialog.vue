@@ -37,7 +37,7 @@
 								<div class="command-content">
 									<p>进入你的项目目录并初始化Git：</p>
 									<div class="command-box">
-										<code>git init</code>
+										<span class="code-text">git init</span>
 										<el-button
 											size="small"
 											@click="copyToClipboard('git init')"
@@ -52,9 +52,9 @@
 								<div class="command-content">
 									<p>添加远程仓库：</p>
 									<div class="command-box">
-										<code
+										<span class="code-text"
 											>git remote add origin
-											{{ repoInfo.serverUrl }}</code
+											{{ repoInfo.serverUrl }}</span
 										>
 										<el-button
 											size="small"
@@ -75,7 +75,7 @@
 								<div class="command-content">
 									<p>添加文件并提交：</p>
 									<div class="command-box">
-										<code>git add .</code>
+										<span class="code-text">git add .</span>
 										<el-button
 											size="small"
 											@click="
@@ -85,9 +85,8 @@
 										/>
 									</div>
 									<div class="command-box">
-										<code
-											>git commit -m "Initial
-											commit"</code
+										<span class="code-text"
+											>git commit -m "Initial commit"</span
 										>
 										<el-button
 											size="small"
@@ -107,7 +106,9 @@
 								<div class="command-content">
 									<p>推送到远程仓库：</p>
 									<div class="command-box">
-										<code>git push -u origin main</code>
+										<span class="code-text"
+											>git push -u origin main</span
+										>
 										<el-button
 											size="small"
 											@click="
@@ -131,9 +132,8 @@
 								<div class="command-content">
 									<p>克隆仓库到本地：</p>
 									<div class="command-box">
-										<code
-											>git clone
-											{{ repoInfo.serverUrl }}</code
+										<span class="code-text"
+											>git clone {{ repoInfo.serverUrl }}</span
 										>
 										<el-button
 											size="small"
@@ -277,7 +277,7 @@ const copyToClipboard = async (text) => {
 	font-family: "Courier New", monospace;
 }
 
-.command-box code {
+.command-box .code-text {
 	flex: 1;
 	background: none;
 	border: none;

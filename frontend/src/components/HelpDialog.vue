@@ -92,39 +92,37 @@
 					<div class="help-section">
 						<h3>克隆仓库</h3>
 						<div class="code-box">
-							<code
-								>git clone
-								http://服务器地址:端口/仓库名.git</code
+							<span class="code-text"
+								>git clone http://服务器地址:端口/仓库名.git</span
 							>
 						</div>
 						<p>示例：</p>
 						<div class="code-box">
-							<code
-								>git clone
-								http://localhost:3000/my-project.git</code
+							<span class="code-text"
+								>git clone http://localhost:3000/my-project.git</span
 							>
 						</div>
 
 						<h3>推送代码</h3>
 						<p>首次推送现有项目：</p>
 						<div class="code-box">
-							<code
-								>git remote add origin
-								http://服务器地址:端口/仓库名.git</code
+							<span class="code-text"
+								>git remote add origin http://服务器地址:端口/仓库名.git</span
 							><br />
-							<code>git push -u origin main</code>
+							<span class="code-text">git push -u origin main</span>
 						</div>
 
 						<p>后续推送：</p>
 						<div class="code-box">
-							<code>git add .</code><br />
-							<code>git commit -m "提交说明"</code><br />
-							<code>git push</code>
+							<span class="code-text">git add .</span><br />
+							<span class="code-text">git commit -m "提交说明"</span
+							><br />
+							<span class="code-text">git push</span>
 						</div>
 
 						<h3>拉取更新</h3>
 						<div class="code-box">
-							<code>git pull</code>
+							<span class="code-text">git pull</span>
 						</div>
 
 						<h3>身份认证</h3>
@@ -138,9 +136,9 @@
 								提示：可以配置Git凭据管理器来保存密码，避免每次输入
 							</p>
 							<div class="code-box">
-								<code
+								<span class="code-text"
 									>git config --global credential.helper
-									store</code
+									store</span
 								>
 							</div>
 						</div>

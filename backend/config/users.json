@@ -7,16 +7,15 @@
       "email": "admin@example.com",
       "role": "super_admin",
       "createdAt": "2026-01-14T00:00:00.000Z",
-      "lastLogin": "2026-01-16T09:25:10.833Z"
-    },
-    {
-      "id": "4e9ddb72-9b02-46cf-a895-7174130e1937",
-      "username": "test",
-      "password": "$2a$10$HD6qFJNK3C1hVC6D.cEhnOLub2lsk0sm5Tn94Ui3W5FPYF1JHRrk.",
-      "email": "",
-      "role": "user",
-      "createdAt": "2026-01-15T07:28:29.199Z",
-      "lastLogin": "2026-01-16T07:57:24.107Z"
+      "lastLogin": "2026-02-03T15:21:09.200+08:00",
+      "npmPermissions": {
+        "canLogin": true,
+        "canPublish": true,
+        "canManage": true,
+        "allowedPackages": [
+          "*"
+        ]
+      }
     },
     {
       "id": "f4b366db-5d46-42f6-8ea9-d255068e958c",
@@ -25,7 +24,47 @@
       "email": "",
       "role": "admin",
       "createdAt": "2026-01-15T07:43:48.752Z",
-      "lastLogin": "2026-01-16T07:57:39.676Z"
+      "lastLogin": "2026-01-27T14:34:47.401+08:00",
+      "npmPermissions": {
+        "canLogin": true,
+        "canPublish": true,
+        "canManage": true,
+        "allowedPackages": [
+          "*"
+        ]
+      }
+    },
+    {
+      "id": "48b575ff-6e74-43ad-a038-8b14129a91c8",
+      "username": "123",
+      "password": "$2a$10$fUfv2k3nvuWxBFDX0UX5kuelFsIavoOA4YPNstQPUUn4Sfop17fMG",
+      "email": "",
+      "role": "admin",
+      "createdAt": "2026-02-03T12:00:57.938+08:00",
+      "lastLogin": "2026-02-03T15:54:08.304+08:00",
+      "npmPermissions": {
+        "canLogin": true,
+        "canPublish": true,
+        "canManage": true,
+        "allowedPackages": [
+          "*"
+        ]
+      }
+    },
+    {
+      "id": "901462d2-aa7f-48dc-973a-8cefef607423",
+      "username": "test",
+      "password": "$2a$10$VivCtCOSdQDxpDO/14.Yi.8XpEG4ZCHxIZCq3PgCsj3T3ueQfLYuC",
+      "email": "",
+      "role": "user",
+      "createdAt": "2026-02-03T16:04:07.224+08:00",
+      "lastLogin": "2026-02-03T16:04:27.976+08:00",
+      "npmPermissions": {
+        "canLogin": true,
+        "canPublish": false,
+        "canManage": false,
+        "allowedPackages": []
+      }
     }
   ]
 }

@@ -23,10 +23,10 @@
 								</p>
 								<div class="command-list">
 									<div class="command-item-config">
-										<code
+										<span class="code-text"
 											>npm set registry http://{{
 												config.serverIP
-											}}:{{ config.serverPort }}/</code
+											}}:{{ config.serverPort }}/</span
 										>
 										<el-button
 											size="small"
@@ -50,10 +50,10 @@
 							<div class="package-manager-config">
 								<div class="command-list">
 									<div class="command-item-config">
-										<code
+										<span class="code-text"
 											>yarn config set registry http://{{
 												config.serverIP
-											}}:{{ config.serverPort }}/</code
+											}}:{{ config.serverPort }}/</span
 										>
 										<el-button
 											size="small"
@@ -77,10 +77,10 @@
 							<div class="package-manager-config">
 								<div class="command-list">
 									<div class="command-item-config">
-										<code
+										<span class="code-text"
 											>pnpm set registry http://{{
 												config.serverIP
-											}}:{{ config.serverPort }}/</code
+											}}:{{ config.serverPort }}/</span
 										>
 										<el-button
 											size="small"
@@ -124,18 +124,22 @@
 						<el-form-item label="服务器IP">
 							<el-input
 								v-model="config.serverIP"
-								placeholder="请输入服务器IP地址"
+								placeholder="暂不支持修改服务器IP"
+								disabled
 							/>
-							<div class="form-tip">当前服务器的IP地址或域名</div>
+							<div class="form-tip warning-tip">
+								🔒 功能开发中，服务器 IP 暂时不可在这里修改
+							</div>
 						</el-form-item>
 						<el-form-item label="服务器端口">
 							<el-input
 								v-model="config.serverPort"
-								placeholder="请输入服务器端口"
+								placeholder="暂不支持修改服务器端口"
 								type="number"
+								disabled
 							/>
-							<div class="form-tip">
-								后端服务监听的端口号（默认: 9001）
+							<div class="form-tip warning-tip">
+								🔒 功能开发中，服务器端口暂时不可在这里修改
 							</div>
 						</el-form-item>
 						<el-form-item label="默认仓库路径">
@@ -245,7 +249,7 @@ const handleSave = () => {
 	font-family: "Courier New", monospace;
 }
 
-.command-item-config code {
+.command-item-config .code-text {
 	flex: 1;
 	background: none;
 	border: none;

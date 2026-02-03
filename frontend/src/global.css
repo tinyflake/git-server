@@ -1,0 +1,26 @@
+.code-text,
+.code-html,
+.code-inline {
+	font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", "Fira Code",
+		"SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+		monospace;
+	font-size: 12px;
+	line-height: 1.45;
+	color: #111827;
+	word-break: break-word;
+}
+
+/* Inline code chip */
+.code-inline {
+	background: #f3f4f6;
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+
+/* Make markdown code blocks match the new look (README 渲染内容仍是 <code>，这里只调整字体样式) */
+.markdown-body code {
+	font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", "Fira Code",
+		"SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+		monospace;
+}
+

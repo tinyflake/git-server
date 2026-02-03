@@ -5,16 +5,19 @@ const path = require("path")
 const repoRoutes = require("./routes/repo-routes")
 const gitHttpRoutes = require("./routes/git-http")
 const authRoutes = require("./routes/auth-routes")
-const userManagementRoutes = require("./routes/user-management-routes")
+const userManagementRoutes = require("./routes/user-management-unified")
 const repoManagementRoutes = require("./routes/repo-management-routes")
 const operationLogRoutes = require("./routes/operation-log-routes")
 const dataMigrationRoutes = require("./routes/data-migration-routes")
+const npmProxyRoutes = require("./routes/npm-proxy-simple")
+const npmPermissionRoutes = require("./routes/npm-permission-routes")
 
 // 导入工具模块
 const { initUsersConfig } = require("./utils/auth-utils")
 const { initGitLogs } = require("./utils/git-logger")
 const { initOperationLogs } = require("./utils/operation-logger")
 const { initRepoConfig } = require("./utils/repo-permission")
+const unifiedAuth = require("./utils/unified-auth")
 
 // 加载环境变量
 dotenv.config({ path: path.join(__dirname, "./config/.env") })
@@ -30,6 +33,17 @@ initUsersConfig()
 initGitLogs()
 initOperationLogs()
 initRepoConfig()
+
+// 初始化统一认证（迁移用户数据）
+console.log("🔧 初始化统一认证系统...")
+unifiedAuth
+	.migrateUsersWithNPMPermissions()
+	.then(() => {
+		console.log("✅ 统一认证系统初始化完成")
+	})
+	.catch((error) => {
+		console.error("❌ 统一认证系统初始化失败:", error)
+	})
 
 // 中间件
 app.use(cors())
@@ -65,8 +79,8 @@ app.use((req, res, next) => {
 	next()
 })
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: "50mb" })) // 增加JSON请求体大小限制，支持npm包发布
+app.use(express.urlencoded({ extended: true, limit: "50mb" })) // 增加URL编码请求体大小限制
 
 // 挂载路由
 console.log("🔧 正在挂载路由...")
@@ -77,6 +91,8 @@ app.use("/api/repos", repoManagementRoutes)
 app.use("/api/logs", operationLogRoutes)
 app.use("/api/migration", dataMigrationRoutes)
 app.use("/api/repo", repoRoutes)
+app.use("/api/npm", npmProxyRoutes)
+app.use("/api/npm-permissions", npmPermissionRoutes)
 // app.use("/api/users", userRoutes) // 旧的用户路由，已被userManagementRoutes替代
 app.use("/git", gitHttpRoutes)
 console.log("✅ 路由挂载完成")

@@ -1,0 +1,41 @@
+# Verdaccio 配置文件
+# 存储路径
+storage: ./verdaccio-storage
+
+# 禁用 Web 界面（我们使用自己的界面）
+web:
+    enable: true
+
+# 认证配置 - 允许用户通过 npm adduser 注册
+auth:
+    htpasswd:
+        file: ./verdaccio-htpasswd
+        # 大于等于 0 表示允许注册，这里设置为最多 1000 个用户
+        max_users: 1000
+
+# 上游代理（代理公共 NPM）
+uplinks:
+    npmjs:
+        url: https://registry.npmjs.org/
+        timeout: 30s
+
+# 包访问控制 - 通过后端API控制权限
+packages:
+    # 所有包都允许访问和发布（权限由后端API控制）
+    "**":
+        access: $all
+        publish: $all
+        unpublish: $authenticated
+        proxy: npmjs
+
+# 服务器配置 - 只监听 IPv4
+listen: 127.0.0.1:4873
+
+# 日志配置
+logs:
+    - { type: stdout, format: pretty, level: http }
+
+# 安全配置
+security:
+    api:
+        mirroring: false

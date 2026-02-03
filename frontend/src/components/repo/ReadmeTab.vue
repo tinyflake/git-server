@@ -37,7 +37,9 @@
 				<div class="readme-suggestion">
 					<h4>建议添加 README.md 文件：</h4>
 					<div class="command-box">
-						<code>echo "# {{ repoName }}" > README.md</code>
+						<span class="code-text"
+							>echo "# {{ repoName }}" > README.md</span
+						>
 						<el-button
 							size="small"
 							@click="
@@ -49,7 +51,7 @@
 						/>
 					</div>
 					<div class="command-box">
-						<code>git add README.md</code>
+						<span class="code-text">git add README.md</span>
 						<el-button
 							size="small"
 							@click="copyCommand('git add README.md')"
@@ -57,7 +59,9 @@
 						/>
 					</div>
 					<div class="command-box">
-						<code>git commit -m "Add README"</code>
+						<span class="code-text"
+							>git commit -m "Add README"</span
+						>
 						<el-button
 							size="small"
 							@click="
@@ -69,7 +73,7 @@
 						/>
 					</div>
 					<div class="command-box">
-						<code>git push origin main</code>
+						<span class="code-text">git push origin main</span>
 						<el-button
 							size="small"
 							@click="copyCommand('git push origin main')"
@@ -126,7 +130,7 @@ li {
 	border-radius: 6px;
 	padding: 20px;
 	position: fixed;
-	top: 200px;
+	top: 235px;
 	left: calc((100vw - 1200px) / 2 - 300px);
 	max-height: calc(100vh - 240px);
 	overflow-y: auto;
@@ -308,7 +312,7 @@ li {
 }
 
 /* 内联代码样式 */
-.readme-content :deep(.markdown-body code) {
+.readme-content :deep(.markdown-body .code-inline) {
 	padding: 0.2em 0.4em;
 	margin: 0;
 	font-size: 85%;
@@ -329,7 +333,7 @@ li {
 	margin: 16px 0;
 }
 
-.readme-content :deep(.markdown-body pre code) {
+.readme-content :deep(.markdown-body pre .code-html) {
 	display: block;
 	padding: 0;
 	margin: 0;
@@ -505,7 +509,7 @@ li {
 	min-height: 36px;
 }
 
-.command-box code {
+.command-box .code-text {
 	flex: 1;
 	background: none;
 	border: none;

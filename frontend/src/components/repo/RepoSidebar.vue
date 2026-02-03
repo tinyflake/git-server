@@ -34,11 +34,9 @@
 							<div class="step-content">
 								<div class="step-title">设置镜像源</div>
 								<div class="command-input">
-									<code
-										>{{ activePackageManager }} config set
-										registry http://{{ serverIP }}:{{
-											serverPort
-										}}/</code
+									<span class="code-text"
+										>{{ activePackageManager }} config set registry
+										http://{{ serverIP }}:{{ serverPort }}/</span
 									>
 									<el-button
 										size="small"
@@ -58,9 +56,9 @@
 							<div class="step-content">
 								<div class="step-title">安装包</div>
 								<div class="command-input">
-									<code>{{
+									<span class="code-text">{{
 										getInstallCommand(activePackageManager)
-									}}</code>
+									}}</span>
 									<el-button
 										size="small"
 										@click="
@@ -424,12 +422,10 @@ const getInstallCommand = (packageManager) => {
 	background: #f9fafb;
 	border: 1px solid #e5e7eb;
 	border-radius: 6px;
-	font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas",
-		"Monaco", monospace;
 	min-height: 36px;
 }
 
-.command-input code {
+.command-input .code-text {
 	flex: 1;
 	background: none;
 	border: none;
@@ -437,8 +433,6 @@ const getInstallCommand = (packageManager) => {
 	color: #111827;
 	word-break: break-all;
 	line-height: 1.4;
-	font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas",
-		"Monaco", monospace;
 }
 
 .command-input .el-button {

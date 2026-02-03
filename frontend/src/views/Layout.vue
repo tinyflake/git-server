@@ -4,6 +4,7 @@
 			:current-user="currentUser"
 			:is-admin="isAdmin"
 			:is-super-admin="isSuperAdmin"
+			:current-mode="currentMode"
 			@user-command="handleUserCommand"
 			@create-repo="showCreateRepoDialog = true"
 			@open-config="showConfigDialog = true"
@@ -43,8 +44,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue"
-import { useRouter } from "vue-router"
+import { ref, computed, onMounted, inject, watch, provide } from "vue"
+import { useRouter, useRoute } from "vue-router"
 import { ElMessage } from "element-plus"
 import HeaderBar from "../components/HeaderBar.vue"
 import FooterBar from "../components/FooterBar.vue"
@@ -58,7 +59,16 @@ import configManager from "../utils/config"
 import { repoApi } from "../api/repo"
 
 const router = useRouter()
+const route = useRoute()
 const { handleUserCommand: handleAuthCommand } = useAuth()
+
+// 监听来自子组件的模式变化事件
+const handleModeChange = (mode) => {
+	currentMode.value = mode
+}
+
+// 将模式变化处理函数暴露给全局
+window.updateHeaderMode = handleModeChange
 
 const showChangePasswordDialog = ref(false)
 const showCreateRepoDialog = ref(false)
@@ -76,6 +86,9 @@ const currentUser = computed(() => authUtils.getCurrentUser())
 const isAdmin = computed(() => authUtils.isAdmin())
 const isSuperAdmin = computed(() => authUtils.isSuperAdmin())
 
+// 注入当前模式（如果在首页）
+const currentMode = ref("git")
+provide("currentMode", currentMode)
 const handleUserCommand = async (command) => {
 	if (command === "changePassword") {
 		showChangePasswordDialog.value = true
@@ -135,6 +148,7 @@ const handleCreateRepo = async (formData) => {
 }
 
 const goHome = () => {
+	console.log("goHome")
 	router.push("/")
 }
 
@@ -157,7 +171,7 @@ const handleSaveConfig = async () => {
 			// 同时保存到本地存储
 			localStorage.setItem(
 				"gitServerConfig",
-				JSON.stringify(configForm.value)
+				JSON.stringify(configForm.value),
 			)
 			configManager.updateConfig(configForm.value)
 		} else {

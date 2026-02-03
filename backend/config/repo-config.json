@@ -9,6 +9,13 @@
         "enabled": true,
         "allowedUsers": []
       }
+    },
+    {
+      "repoName": "publish-test",
+      "repoPath": "C:\\Users\\pc\\Desktop\\my-git-server\\repos\\publish-test",
+      "desc": "发包测试",
+      "creator": "admin",
+      "whitelist": []
     }
   ]
 }

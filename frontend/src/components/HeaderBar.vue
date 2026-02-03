@@ -1,11 +1,13 @@
 <template>
-	<header class="top-header">
+	<header class="top-header" :class="`mode-${currentMode}`">
 		<div class="header-container">
 			<div class="logo-section" @click="$emit('go-home')">
 				<div class="logo">
 					<el-icon><Box /></el-icon>
 				</div>
-				<h1 class="site-title">私有仓库</h1>
+				<h1 class="site-title">
+					{{ currentMode === "npm" ? "私有NPM" : "私有仓库" }}
+				</h1>
 			</div>
 
 			<div class="header-actions">
@@ -103,6 +105,10 @@ defineProps({
 	currentUser: Object,
 	isAdmin: Boolean,
 	isSuperAdmin: Boolean,
+	currentMode: {
+		type: String,
+		default: "git",
+	},
 })
 
 defineEmits(["user-command", "create-repo", "open-config", "go-home"])
@@ -114,6 +120,12 @@ defineEmits(["user-command", "create-repo", "open-config", "go-home"])
 	color: white;
 	padding: 0;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: background-color 0.3s ease;
+}
+
+/* NPM 模式的绿色主题 */
+.top-header.mode-npm {
+	background: #059669;
 }
 
 .header-container {

@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from "vue-router"
 import Layout from "../views/Layout.vue"
 import Home from "../views/Home.vue"
 import RepoDetail from "../views/RepoDetail.vue"
+import NPMPackageDetail from "../views/NPMPackageDetail.vue"
 import Login from "../views/Login.vue"
 import UserManagement from "../views/UserManagement.vue"
 import { authUtils } from "../api/auth.js"
@@ -27,6 +28,12 @@ const routes = [
 				path: "repo/:name",
 				name: "RepoDetail",
 				component: RepoDetail,
+				props: true,
+			},
+			{
+				path: "npm/:name",
+				name: "NPMPackageDetail",
+				component: NPMPackageDetail,
 				props: true,
 			},
 			{

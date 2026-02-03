@@ -50,14 +50,6 @@
 			>
 				<el-icon><Download /></el-icon>
 			</el-button>
-			<el-button
-				v-if="canDelete"
-				size="small"
-				type="danger"
-				@click.stop="$emit('delete', repo)"
-			>
-				<el-icon><Delete /></el-icon>
-			</el-button>
 			<el-button size="small">
 				<el-icon><MoreFilled /></el-icon>
 			</el-button>
@@ -66,14 +58,12 @@
 </template>
 
 <script setup>
-import { computed } from "vue"
 import {
 	User,
 	UserFilled,
 	Calendar,
 	Download,
 	MoreFilled,
-	Delete,
 } from "@element-plus/icons-vue"
 
 const props = defineProps({
@@ -93,23 +83,7 @@ defineEmits([
 	"download-latest",
 	"edit-path",
 	"show-guide",
-	"delete",
 ])
-
-// 判断是否可以删除
-const canDelete = computed(() => {
-	if (!props.currentUser) return false
-
-	// 超管可以删除所有仓库
-	if (props.currentUser.role === "super_admin") return true
-
-	// 管理员只能删除自己创建的仓库
-	if (props.currentUser.role === "admin") {
-		return props.repo.creator === props.currentUser.username
-	}
-
-	return false
-})
 
 const formatDate = (dateString) => {
 	if (!dateString) return "未知"
