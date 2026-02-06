@@ -7,7 +7,7 @@
       "email": "admin@example.com",
       "role": "super_admin",
       "createdAt": "2026-01-14T00:00:00.000Z",
-      "lastLogin": "2026-02-03T15:21:09.200+08:00",
+      "lastLogin": "2026-02-06T14:34:16.434+08:00",
       "npmPermissions": {
         "canLogin": true,
         "canPublish": true,
