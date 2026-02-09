@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs")
 const crypto = require("crypto")
 const { hashPasswordBcrypt } = require("./auth-utils")
 const { getCurrentUTC8Timestamp } = require("./time-utils")
+const { logOperation } = require("./operation-logger")
 
 class UnifiedAuth {
 	constructor() {
@@ -177,7 +178,7 @@ class UnifiedAuth {
 	}
 
 	// 创建用户（同时创建到users.json和htpasswd）
-	async createUser(userData) {
+	async createUser(userData, operatorUsername = "system") {
 		try {
 			const usersData = await this.readUsers()
 
@@ -224,6 +225,14 @@ class UnifiedAuth {
 				)
 			}
 
+			// 记录操作日志
+			logOperation(
+				operatorUsername,
+				"create_user",
+				userData.username,
+				`创建用户: ${userData.username} (角色: ${userData.role || "user"})`,
+			)
+
 			console.log(`用户创建成功: ${userData.username}`)
 			return { success: true, user: newUser }
 		} catch (error) {
@@ -233,7 +242,7 @@ class UnifiedAuth {
 	}
 
 	// 删除用户（同时从users.json和htpasswd删除）
-	async deleteUser(username) {
+	async deleteUser(username, operatorUsername = "system") {
 		try {
 			const usersData = await this.readUsers()
 			const userIndex = usersData.users.findIndex(
@@ -244,12 +253,22 @@ class UnifiedAuth {
 				throw new Error("用户不存在")
 			}
 
+			const deletedUser = usersData.users[userIndex]
+
 			// 从users.json删除
 			usersData.users.splice(userIndex, 1)
 			await this.saveUsers(usersData)
 
 			// 从htpasswd删除
 			await this.removeUserFromHtpasswd(username)
+
+			// 记录操作日志
+			logOperation(
+				operatorUsername,
+				"delete_user",
+				username,
+				`删除用户: ${username} (角色: ${deletedUser.role})`,
+			)
 
 			console.log(`用户删除成功: ${username}`)
 			return { success: true }

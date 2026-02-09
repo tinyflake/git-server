@@ -86,12 +86,15 @@ router.post("/", authenticateJWT, requireAdmin, async (req, res) => {
 		}
 
 		// 使用统一认证创建用户
-		const result = await unifiedAuth.createUser({
-			username,
-			password,
-			email,
-			role: userRole,
-		})
+		const result = await unifiedAuth.createUser(
+			{
+				username,
+				password,
+				email,
+				role: userRole,
+			},
+			currentUser.username,
+		)
 
 		if (!result.success) {
 			return res.status(400).json({ error: result.error })
@@ -127,7 +130,10 @@ router.delete("/:username", authenticateJWT, requireAdmin, async (req, res) => {
 		}
 
 		// 使用统一认证删除用户
-		const result = await unifiedAuth.deleteUser(username)
+		const result = await unifiedAuth.deleteUser(
+			username,
+			currentUser.username,
+		)
 
 		if (!result.success) {
 			return res.status(400).json({ error: result.error })
@@ -165,11 +171,9 @@ router.put(
 
 			// 不允许修改为超级管理员（超级管理员只有一个）
 			if (role === "super_admin") {
-				return res
-					.status(403)
-					.json({
-						error: "不允许修改为超级管理员，超级管理员只有一个",
-					})
+				return res.status(403).json({
+					error: "不允许修改为超级管理员，超级管理员只有一个",
+				})
 			}
 
 			// 查找目标用户
