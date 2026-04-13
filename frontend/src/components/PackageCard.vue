@@ -13,7 +13,7 @@
 			<div class="package-meta">
 				<span class="meta-item">
 					<el-icon><User /></el-icon>
-					{{ repo.author || "Unknown" }}
+					{{ formatAuthor(repo.author) }}
 				</span>
 				<span class="meta-item">
 					<el-icon><Calendar /></el-icon>
@@ -84,6 +84,15 @@ defineEmits([
 	"edit-path",
 	"show-guide",
 ])
+
+const formatAuthor = (author) => {
+	if (!author) return "Unknown"
+	if (typeof author === "string") return author
+	if (typeof author === "object") {
+		return author.name || author.email || "Unknown"
+	}
+	return "Unknown"
+}
 
 const formatDate = (dateString) => {
 	if (!dateString) return "未知"

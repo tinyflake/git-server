@@ -322,14 +322,85 @@
 		</main>
 
 		<!-- 安装指南对话框 -->
-		<el-dialog v-model="showInstallGuide" title="安装指南" width="600px">
+		<el-dialog v-model="showInstallGuide" title="安装指南" width="620px">
 			<div class="install-guide">
+				<h4>私有源地址</h4>
+				<div class="code-block">
+					<span class="code-text"
+						>http://git.tinyflake.cn/verdaccio/</span
+					>
+					<el-button
+						size="small"
+						@click="copyText('http://git.tinyflake.cn/verdaccio/')"
+						class="copy-btn"
+					>
+						<el-icon><CopyDocument /></el-icon>
+					</el-button>
+				</div>
+
+				<h4>设置源地址</h4>
+				<div class="code-block">
+					<span class="code-text"
+						>npm config set registry
+						http://git.tinyflake.cn/verdaccio/</span
+					>
+					<el-button
+						size="small"
+						@click="
+							copyText(
+								'npm config set registry http://git.tinyflake.cn/verdaccio/',
+							)
+						"
+						class="copy-btn"
+					>
+						<el-icon><CopyDocument /></el-icon>
+					</el-button>
+				</div>
+
+				<h4>单次安装指定源</h4>
+				<div class="code-block">
+					<span class="code-text"
+						>npm install {{ packageName }} --registry
+						http://git.tinyflake.cn/verdaccio/</span
+					>
+					<el-button
+						size="small"
+						@click="
+							copyText(
+								`npm install ${packageName} --registry http://git.tinyflake.cn/verdaccio/`,
+							)
+						"
+						class="copy-btn"
+					>
+						<el-icon><CopyDocument /></el-icon>
+					</el-button>
+				</div>
+
 				<h4>NPM 安装</h4>
 				<div class="code-block">
 					<span class="code-text">npm install {{ packageName }}</span>
 					<el-button
 						size="small"
 						@click="copyInstallCommand"
+						class="copy-btn"
+					>
+						<el-icon><CopyDocument /></el-icon>
+					</el-button>
+				</div>
+
+				<h4>恢复官方源</h4>
+				<div class="code-block">
+					<span class="code-text"
+						>npm config set registry
+						https://registry.npmjs.org/</span
+					>
+					<el-button
+						size="small"
+						@click="
+							copyText(
+								'npm config set registry https://registry.npmjs.org/',
+							)
+						"
 						class="copy-btn"
 					>
 						<el-icon><CopyDocument /></el-icon>
@@ -485,6 +556,21 @@ const copyInstallCommand = async () => {
 		document.execCommand("copy")
 		document.body.removeChild(textArea)
 		ElMessage.success("安装命令已复制到剪贴板")
+	}
+}
+
+const copyText = async (text) => {
+	try {
+		await navigator.clipboard.writeText(text)
+		ElMessage.success("已复制到剪贴板")
+	} catch (error) {
+		const textArea = document.createElement("textarea")
+		textArea.value = text
+		document.body.appendChild(textArea)
+		textArea.select()
+		document.execCommand("copy")
+		document.body.removeChild(textArea)
+		ElMessage.success("已复制到剪贴板")
 	}
 }
 
